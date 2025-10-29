@@ -6,53 +6,63 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      background-color: #1b1b1b;
-      color: #dfde63;
+      background-color: #FFFBF5;
+      color: #000000;
       font-family: "Garamond", "Times New Roman", serif;
-      text-align: center;
-      padding: 30px;
-      line-height: 1.5;
-    }
-    h1 {
-      font-size: 1.4em;
-      font-weight: normal;
-      letter-spacing: 1px;
-      color: #dfde63;
-      margin-bottom: 10px;
-    }
-    #oracleResponse {
-      margin-top: 30px;
-      padding: 15px;
-      border: 1px solid #dfde63;
-      border-radius: 12px;
       text-align: left;
-      background-color: rgba(255,255,255,0.05);
+      padding: 25px;
+      margin: 0;
+      line-height: 1.6;
       overflow-y: auto;
-      max-height: 80vh;
+      transition: background-color 0.5s ease, color 0.5s ease;
+    }
+
+    h1 {
+      font-size: 1.3em;
+      font-weight: normal;
+      letter-spacing: 0.5px;
+      text-align: center;
+      margin-top: 30px;
+      margin-bottom: 20px;
+      opacity: 0.8;
+      transition: opacity 0.5s ease;
+    }
+
+    #oracleResponse {
       white-space: pre-wrap;
+      opacity: 0;
+      transition: opacity 0.8s ease-in-out;
     }
-    .fade-in {
-      animation: fadeIn 1.2s ease-in-out;
+
+    .visible {
+      opacity: 1;
     }
+
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(15px); }
+      from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-in {
+      animation: fadeIn 1.2s ease forwards;
     }
   </style>
 </head>
 <body>
-  <h1>Sister is listening...</h1>
-  <div id="oracleResponse" class="fade-in">Awaiting the oracle’s whisper...</div>
+  <h1 id="sisterTitle">Sister is listening...</h1>
+  <div id="oracleResponse"></div>
 
   <!-- ✅ Thunkable WebViewer Extension -->
   <script src="https://thunkable.github.io/webviewer-extension/thunkableWebviewerExtension.js"></script>
 
   <script>
-    // Listen for messages sent from Thunkable
+    const oracleBox = document.getElementById("oracleResponse");
+    const title = document.getElementById("sisterTitle");
+
+    // Listen for Thunkable message
     ThunkableWebviewerExtension.receiveMessage(function(message) {
       console.log("Message received from Thunkable:", message);
 
-      // Support both plain text and structured JSON
       let html = "";
       try {
         const parsed = JSON.parse(message);
@@ -61,10 +71,13 @@
         html = message;
       }
 
-      // Render it in the div
-      const oracleBox = document.getElementById("oracleResponse");
+      // Insert content
       oracleBox.innerHTML = html;
-      oracleBox.classList.add("fade-in");
+      oracleBox.classList.add("fade-in", "visible");
+
+      // Fade out the title once message arrives
+      title.style.opacity = "0";
+      setTimeout(() => { title.style.display = "none"; }, 600);
     });
   </script>
 </body>
