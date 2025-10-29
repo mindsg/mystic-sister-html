@@ -6,12 +6,11 @@
   <title>Mystic Sister Oracle</title>
   <style>
     body {
-      background-color: #FFFBF5; /* match your app background */
-      color: #000000; /* readable text */
+      background-color: #FFFBF5; /* match app background */
+      color: #000000;
       font-family: "Georgia", "Times New Roman", serif;
       padding: 20px;
       margin: 0;
-      text-align: left;
       line-height: 1.4;
       overflow-y: auto;
     }
@@ -22,67 +21,73 @@
       font-style: italic;
       color: #5c4b3c;
       font-size: 1.1em;
-      opacity: 0.8;
+      opacity: 0.85;
     }
 
     #oracle {
       display: none;
       opacity: 0;
-      transition: opacity 1.5s ease-in-out;
+      transition: opacity 1.2s ease-in-out;
+      white-space: normal;  /* render HTML naturally */
     }
 
-    p {
-      margin: 0.35em 0;
-      line-height: 1.35;
-    }
+    p { margin: 0.35em 0; line-height: 1.35; }
+    b { font-weight: 700; }
+    i { font-style: italic; }
 
-    b {
-      font-weight: bold;
-    }
-
-    i {
-      font-style: italic;
-    }
-
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: #c8b79e;
-      border-radius: 6px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: #b8a588;
-    }
+    /* Nice scrollbar (optional) */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-thumb { background: #c8b79e; border-radius: 6px; }
+    ::-webkit-scrollbar-thumb:hover { background: #b8a588; }
   </style>
 </head>
 <body>
   <div id="loading">Sister is listening...</div>
   <div id="oracle"></div>
 
+  <!-- ✅ Thunkable WebViewer Extension (required for receiveMessage on device) -->
+  <script src="https://thunkable.github.io/webviewer-extension/thunkableWebviewerExtension.js"></script>
+
   <script>
-    window.addEventListener("message", (event) => {
+    const loadingDiv = document.getElementById("loading");
+    const oracleDiv  = document.getElementById("oracle");
+
+    function renderMessage(payload) {
       try {
-        const msg = event.data.message;
-        const oracleDiv = document.getElementById("oracle");
-        const loadingDiv = document.getElementById("loading");
+        let html = "";
 
-        if (msg && typeof msg === "string") {
-          // hide the loading message
-          loadingDiv.style.display = "none";
-
-          // insert message and fade in
-          oracleDiv.innerHTML = msg;
-          oracleDiv.style.display = "block";
-          setTimeout(() => {
-            oracleDiv.style.opacity = 1;
-          }, 50);
+        // Accept plain string or JSON { html: "...", message: "..." }
+        if (typeof payload === "string") {
+          try {
+            const parsed = JSON.parse(payload);
+            html = parsed.html || parsed.message || payload;
+          } catch {
+            html = payload; // plain string
+          }
+        } else if (payload && typeof payload === "object") {
+          html = payload.html || payload.message || JSON.stringify(payload);
+        } else {
+          html = "(No message)";
         }
+
+        // Show content and fade in
+        loadingDiv.style.display = "none";
+        oracleDiv.innerHTML = html;
+        oracleDiv.style.display = "block";
+        requestAnimationFrame(() => { oracleDiv.style.opacity = 1; });
       } catch (err) {
         console.error("Error rendering oracle message:", err);
       }
+    }
+
+    // ✅ Primary: Thunkable extension receiver
+    if (window.ThunkableWebviewerExtension && ThunkableWebviewerExtension.receiveMessage) {
+      ThunkableWebviewerExtension.receiveMessage(renderMessage);
+    }
+
+    // ✅ Fallback: window message (helps in web preview)
+    window.addEventListener("message", (ev) => {
+      renderMessage(ev.data);
     });
   </script>
 </body>
