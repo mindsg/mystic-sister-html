@@ -1,83 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mystic Sister Oracle</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      background-color: #FFFBF5;
-      color: #000000;
-      font-family: "Garamond", "Times New Roman", serif;
-      text-align: left;
-      padding: 25px;
+      background-color: #FFFBF5; /* match your app background */
+      color: #000000; /* readable text */
+      font-family: "Georgia", "Times New Roman", serif;
+      padding: 20px;
       margin: 0;
-      line-height: 1.6;
+      text-align: left;
+      line-height: 1.4;
       overflow-y: auto;
-      transition: background-color 0.5s ease, color 0.5s ease;
     }
 
-    h1 {
-      font-size: 1.3em;
-      font-weight: normal;
-      letter-spacing: 0.5px;
+    #loading {
       text-align: center;
-      margin-top: 30px;
-      margin-bottom: 20px;
+      margin-top: 30vh;
+      font-style: italic;
+      color: #5c4b3c;
+      font-size: 1.1em;
       opacity: 0.8;
-      transition: opacity 0.5s ease;
     }
 
-    #oracleResponse {
-      white-space: pre-wrap;
+    #oracle {
+      display: none;
       opacity: 0;
-      transition: opacity 0.8s ease-in-out;
+      transition: opacity 1.5s ease-in-out;
     }
 
-    .visible {
-      opacity: 1;
+    p {
+      margin: 0.35em 0;
+      line-height: 1.35;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+    b {
+      font-weight: bold;
     }
 
-    .fade-in {
-      animation: fadeIn 1.2s ease forwards;
+    i {
+      font-style: italic;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #c8b79e;
+      border-radius: 6px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #b8a588;
     }
   </style>
 </head>
 <body>
-  <h1 id="sisterTitle">Sister is listening...</h1>
-  <div id="oracleResponse"></div>
-
-  <!-- ✅ Thunkable WebViewer Extension -->
-  <script src="https://thunkable.github.io/webviewer-extension/thunkableWebviewerExtension.js"></script>
+  <div id="loading">Sister is listening...</div>
+  <div id="oracle"></div>
 
   <script>
-    const oracleBox = document.getElementById("oracleResponse");
-    const title = document.getElementById("sisterTitle");
-
-    // Listen for Thunkable message
-    ThunkableWebviewerExtension.receiveMessage(function(message) {
-      console.log("Message received from Thunkable:", message);
-
-      let html = "";
+    window.addEventListener("message", (event) => {
       try {
-        const parsed = JSON.parse(message);
-        html = parsed.html || parsed.message || JSON.stringify(parsed, null, 2);
-      } catch (e) {
-        html = message;
+        const msg = event.data.message;
+        const oracleDiv = document.getElementById("oracle");
+        const loadingDiv = document.getElementById("loading");
+
+        if (msg && typeof msg === "string") {
+          // hide the loading message
+          loadingDiv.style.display = "none";
+
+          // insert message and fade in
+          oracleDiv.innerHTML = msg;
+          oracleDiv.style.display = "block";
+          setTimeout(() => {
+            oracleDiv.style.opacity = 1;
+          }, 50);
+        }
+      } catch (err) {
+        console.error("Error rendering oracle message:", err);
       }
-
-      // Insert content
-      oracleBox.innerHTML = html;
-      oracleBox.classList.add("fade-in", "visible");
-
-      // Fade out the title once message arrives
-      title.style.opacity = "0";
-      setTimeout(() => { title.style.display = "none"; }, 600);
     });
   </script>
 </body>
