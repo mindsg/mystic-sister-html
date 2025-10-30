@@ -6,96 +6,77 @@
   <title>Mystic Sister Oracle</title>
   <style>
     body {
-      background-color: #FFFBF5; /* match app background */
-      color: #000000;
-      font-family: "Georgia", "Times New Roman", serif;
+      background-color: #FFFBF5;
+      color: #000;
+      font-family: 'Georgia', serif;
+      line-height: 1.5;
+      margin: 0;
       padding: 20px;
-      margin: 0;
-      line-height: 1.4;
       overflow-y: auto;
-      margin: 0;
-      padding: 0;
-      overflow-x: hidden; /* prevent horizontal scroll */
+      overflow-x: hidden;
+      box-sizing: border-box;
     }
 
-    #content {
-      max-width: 100%;
-      overflow-wrap: break-word;
-    }
-    
     #loading {
-      text-align: center;
-      margin-top: 30vh;
-      font-style: italic;
-      color: #5c4b3c;
-      font-size: 1.1em;
-      opacity: 0.85;
-    }
-
-    #oracle {
       display: none;
-      opacity: 0;
-      transition: opacity 1.2s ease-in-out;
-      white-space: normal;  /* render HTML naturally */
+      text-align: center;
+      margin-top: 40%;
     }
 
-    p { margin: 0.35em 0; line-height: 1.35; }
-    b { font-weight: 700; }
-    i { font-style: italic; }
+    #loading img {
+      width: 120px;
+      height: auto;
+      opacity: 0.9;
+    }
 
-    /* Nice scrollbar (optional) */
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-thumb { background: #c8b79e; border-radius: 6px; }
-    ::-webkit-scrollbar-thumb:hover { background: #b8a588; }
+    #response {
+      display: none;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
   </style>
 </head>
 <body>
-  <div id="loading">Sister is listening...</div>
-  <div id="oracle"></div>
+  <div id="loading">
+    <img src="assets/loading.gif" alt="Sister is listening..." />
+    <p><em>Sister is listening...</em></p>
+  </div>
 
-  <!-- ✅ Thunkable WebViewer Extension (required for receiveMessage on device) -->
-  <script src="https://thunkable.github.io/webviewer-extension/thunkableWebviewerExtension.js"></script>
+  <div id="response"></div>
 
   <script>
-    const loadingDiv = document.getElementById("loading");
-    const oracleDiv  = document.getElementById("oracle");
+    const loadingEl = document.getElementById('loading');
+    const responseEl = document.getElementById('response');
 
-    function renderMessage(payload) {
-      try {
-        let html = "";
+    function resetOracle() {
+      loadingEl.style.display = 'block';
+      responseEl.style.display = 'none';
+      responseEl.innerHTML = '';
+    }
 
-        // Accept plain string or JSON { html: "...", message: "..." }
-        if (typeof payload === "string") {
-          try {
-            const parsed = JSON.parse(payload);
-            html = parsed.html || parsed.message || payload;
-          } catch {
-            html = payload; // plain string
-          }
-        } else if (payload && typeof payload === "object") {
-          html = payload.html || payload.message || JSON.stringify(payload);
+    function showOracleMessage(msg) {
+      loadingEl.style.display = 'none';
+      responseEl.style.display = 'block';
+      responseEl.innerHTML = msg;
+    }
+
+    // Show loading by default
+    resetOracle();
+
+    // Listen for messages from Thunkable
+    window.addEventListener('message', (event) => {
+      const data = event.data;
+      if (typeof data === 'string') {
+        if (data.trim().toLowerCase() === 'reset') {
+          resetOracle();
         } else {
-          html = "(No message)";
+          showOracleMessage(data);
         }
-
-        // Show content and fade in
-        loadingDiv.style.display = "none";
-        oracleDiv.innerHTML = html;
-        oracleDiv.style.display = "block";
-        requestAnimationFrame(() => { oracleDiv.style.opacity = 1; });
-      } catch (err) {
-        console.error("Error rendering oracle message:", err);
       }
-    }
-
-    // ✅ Primary: Thunkable extension receiver
-    if (window.ThunkableWebviewerExtension && ThunkableWebviewerExtension.receiveMessage) {
-      ThunkableWebviewerExtension.receiveMessage(renderMessage);
-    }
-
-    // ✅ Fallback: window message (helps in web preview)
-    window.addEventListener("message", (ev) => {
-      renderMessage(ev.data);
     });
   </script>
 </body>
