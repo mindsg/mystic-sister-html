@@ -88,6 +88,12 @@
     // ✅ Fallback: window message (helps in web preview)
     window.addEventListener("message", (ev) => {
       renderMessage(ev.data);
+      
+      if (data === "reset") {
+  const output = document.getElementById("oracle-output");
+  output.innerHTML = "<p><i>Sister is listening...</i></p>";
+  return;
+}
     });
   </script>
 </body>
