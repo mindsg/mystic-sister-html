@@ -12,21 +12,25 @@
       line-height: 1.5;
       margin: 0;
       padding: 20px;
-      text-align: center;
+      /* important: keep the whole page left-aligned */
+      text-align: left;
       overflow-x: hidden;
     }
 
-    /* Sister is listening... */
-    #listening {
+    /* a small top wrapper we center explicitly */
+    #top-center {
       margin-top: 30%;
+      text-align: center;
+    }
+
+    #listening {
       font-style: italic;
       font-size: 1.2em;
     }
 
-    /* Loading GIF (hidden until triggered) */
     #loading {
       display: none;
-      margin-top: 20px;
+      margin-top: 16px;
     }
 
     #loading img {
@@ -35,35 +39,79 @@
       opacity: 0.9;
     }
 
-    /* Response area (hidden until message arrives) */
+    /* response container is left-aligned text, but block itself is centered for nice margins */
     #response {
       display: none;
-      animation: fadeIn 1s ease-in-out;
+      animation: fadeIn 300ms ease-in;
       margin-top: 40px;
-      text-align: left;             /* 👈 make the text left-aligned */
-      max-width: 600px;             /* 👈 keep text comfortably narrow */
-      margin-left: auto;            /* 👈 center the block on page */
+      max-width: 640px;
+      margin-left: auto;
       margin-right: auto;
-      white-space: pre-wrap;        /* 👈 preserve paragraph breaks */
+      white-space: pre-wrap;
+      text-align: left;
     }
+    /* ensure any nested elements are left-aligned even if the HTML we inject has its own styles */
+    #response * { text-align: left !important; }
 
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   </style>
 </head>
 <body>
 
-  <!-- Always visible -->
-  <div id="listening"><em>Sister is listening...</em></div>
-
-  <!-- Appears only during API call -->
-  <div id="loading">
-    <img src="assets/loading.gif" alt="Loading..." />
+  <!-- centered header area -->
+  <div id="top-center">
+    <div id="listening"><em>Sister is listening...</em></div>
+    <div id="loading">
+      <img src="assets/loading.gif" alt="Loading..." />
+    </div>
   </div>
 
-  <!-- Displays Oracle response -->
+  <!-- left-aligned response text (container centered, text left) -->
   <div id="response"></div>
 
   <script>
+    const loadingEl = document.getElementById('loading');
+    const responseEl = document.getElementById('response');
+
+    function showLoading() {
+      loadingEl.style.display = 'block';
+      responseEl.style.display = 'none';
+      responseEl.innerHTML = '';
+      // keep the listening line visible; only the gif toggles
+    }
+
+    function showResponse(msg) {
+      loadingEl.style.display = 'none';
+      responseEl.style.display = 'block';
+      responseEl.innerHTML = msg;
+    }
+
+    function resetOracle() {
+      loadingEl.style.display = 'none';
+      responseEl.style.display = 'none';
+      responseEl.innerHTML = '';
+    }
+
+    // initial state
+    resetOracle();
+
+    // Thunkable → Web Viewer messages:
+    //   "loading" shows gif
+    //   "reset" hides gif/response
+    //   anything else = the AI reply html/text
+    window.addEventListener('message', (event) => {
+      const data = event.data;
+      if (typeof data !== 'string') return;
+
+      const t = data.trim().toLowerCase();
+      if (t === 'reset') {
+        resetOracle();
+      } else if (t === 'loading') {
+        showLoading();
+      } else {
+        showResponse(data);
+      }
+    });
+  </script>
+</body>
+</html>
