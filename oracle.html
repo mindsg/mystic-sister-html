@@ -12,12 +12,11 @@
       line-height: 1.5;
       margin: 0;
       padding: 20px;
-      /* important: keep the whole page left-aligned */
-      text-align: left;
+      text-align: left;               /* whole page left-aligned */
       overflow-x: hidden;
     }
 
-    /* a small top wrapper we center explicitly */
+    /* centered header area */
     #top-center {
       margin-top: 30%;
       text-align: center;
@@ -39,7 +38,7 @@
       opacity: 0.9;
     }
 
-    /* response container is left-aligned text, but block itself is centered for nice margins */
+    /* response container: block centered, text left-aligned */
     #response {
       display: none;
       animation: fadeIn 300ms ease-in;
@@ -50,8 +49,13 @@
       white-space: pre-wrap;
       text-align: left;
     }
-    /* ensure any nested elements are left-aligned even if the HTML we inject has its own styles */
     #response * { text-align: left !important; }
+
+    /* tighten paragraph spacing for any <p> elements */
+    #response p {
+      margin-top: 0.5em;
+      margin-bottom: 0.5em;
+    }
 
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   </style>
@@ -66,7 +70,7 @@
     </div>
   </div>
 
-  <!-- left-aligned response text (container centered, text left) -->
+  <!-- left-aligned response text (container centered) -->
   <div id="response"></div>
 
   <script>
@@ -77,13 +81,15 @@
       loadingEl.style.display = 'block';
       responseEl.style.display = 'none';
       responseEl.innerHTML = '';
-      // keep the listening line visible; only the gif toggles
     }
 
     function showResponse(msg) {
       loadingEl.style.display = 'none';
       responseEl.style.display = 'block';
-      responseEl.innerHTML = msg;
+
+      // normalize paragraph spacing: collapse 2+ newlines into 1
+      const cleaned = msg.replace(/\n{2,}/g, '\n');
+      responseEl.innerHTML = cleaned;
     }
 
     function resetOracle() {
@@ -98,7 +104,7 @@
     // Thunkable → Web Viewer messages:
     //   "loading" shows gif
     //   "reset" hides gif/response
-    //   anything else = the AI reply html/text
+    //   anything else = AI reply html/text
     window.addEventListener('message', (event) => {
       const data = event.data;
       if (typeof data !== 'string') return;
