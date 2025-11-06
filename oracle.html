@@ -5,102 +5,49 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mystic Sister Oracle</title>
   <style>
-    body {
-      background-color: #FFFBF5;
-      color: #000;
-      font-family: 'Georgia', serif;
-      line-height: 1.5;
-      margin: 0;
-      padding: 20px;
-      text-align: center;
-      overflow-x: hidden;
-    }
-
-    #listening {
-      margin-top: 30%;
-      font-style: italic;
-      font-size: 1.2em;
-    }
-
-    #loading {
-      display: none;
-      margin-top: 20px;
-    }
-
-    #loading img {
-      width: 120px;
-      height: auto;
-      opacity: 0.9;
-    }
-
-    #response {
-      display: none;
-      animation: fadeIn 1s ease-in-out;
-      margin-top: 40px;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
+    body { background:#FFFBF5; color:#000; font-family:Georgia, serif; line-height:1.5; margin:0; padding:20px; text-align:center; }
+    #listening { margin-top:30%; font-style:italic; font-size:1.2em; }
+    #loading { display:none; margin-top:16px; }
+    #loading img { width:120px; height:auto; opacity:.9; }
+    #response { display:none; margin-top:32px; animation:fadeIn 300ms ease-in; }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
   </style>
 </head>
 <body>
-
-  <!-- Always visible -->
   <div id="listening"><em>Sister is listening...</em></div>
-
-  <!-- Appears only during API call -->
-  <div id="loading">
-    <img src="assets/loading.gif" alt="Loading..." />
-  </div>
-
-  <!-- Displays Oracle response -->
+  <div id="loading"><img src="assets/loading.gif" alt="Loading..." /></div>
   <div id="response"></div>
 
   <script>
     const loadingEl = document.getElementById('loading');
     const responseEl = document.getElementById('response');
 
-    // Show the loading animation (after Send button pressed)
     function showLoading() {
       loadingEl.style.display = 'block';
       responseEl.style.display = 'none';
       responseEl.innerHTML = '';
     }
-
-    // Hide loading and show the AI’s reply
     function showResponse(msg) {
       loadingEl.style.display = 'none';
       responseEl.style.display = 'block';
       responseEl.innerHTML = msg;
     }
-
-    // Reset everything (hide response + gif)
     function resetOracle() {
       loadingEl.style.display = 'none';
       responseEl.style.display = 'none';
       responseEl.innerHTML = '';
     }
-
-    // Initialize hidden elements
+    // start with only the “listening” line visible
     resetOracle();
 
-    // Listen for Thunkable messages
+    // thunkable → Web Viewer “Post Message” handler
     window.addEventListener('message', (event) => {
       const data = event.data;
-
-      if (typeof data === 'string') {
-        const text = data.trim().toLowerCase();
-
-        if (text === 'reset') {
-          resetOracle();
-        } else if (text === 'loading') {
-          showLoading();
-        } else {
-          showResponse(event.data); // Display AI’s reply
-        }
-      }
+      if (typeof data !== 'string') return;
+      const t = data.trim().toLowerCase();
+      if (t === 'loading') showLoading();
+      else if (t === 'reset') resetOracle();
+      else showResponse(data); // any other string = AI reply HTML
     });
   </script>
 </body>
