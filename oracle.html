@@ -18,7 +18,7 @@
 
     /* header area */
     #top-center {
-      padding-top: 60px;              /* was margin-top:30%; now tighter */
+      padding-top: 60px;              /* brings content higher than before */
       text-align: center;
     }
 
@@ -46,7 +46,7 @@
       max-width: 640px;
       margin-left: auto;
       margin-right: auto;
-      white-space: pre-line;          /* preserve single newlines nicely */
+      white-space: pre-line;          /* preserves single newlines nicely */
       text-align: left;
     }
     #response * { text-align: left !important; }
@@ -91,10 +91,14 @@
       loadingEl.style.display = 'none';
       responseEl.style.display = 'block';
 
-      // collapse double newlines to single
-      const cleaned = msg.replace(/\n{2,}/g, '\n');
+      // Defensive: ensure string and strip HTML/body wrappers to avoid crash
+      if (typeof msg !== 'string') msg = String(msg || '');
+      let cleaned = msg
+        .replace(/<\/?html>/gi, '')
+        .replace(/<\/?body.*?>/gi, '')
+        .replace(/\n{2,}/g, '\n');
+
       responseEl.innerHTML = cleaned;
-      window.scrollTo(0, 0);
     }
 
     function resetOracle() {
