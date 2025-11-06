@@ -48,36 +48,52 @@
 
   <div id="response"></div>
 
-  <script>
-    const loadingEl = document.getElementById('loading');
-    const responseEl = document.getElementById('response');
+<script>
+  const loadingEl = document.getElementById('loading');
+  const responseEl = document.getElementById('response');
 
-    function resetOracle() {
-      loadingEl.style.display = 'block';
-      responseEl.style.display = 'none';
-      responseEl.innerHTML = '';
-    }
+  // Show the loading animation
+  function showLoading() {
+    loadingEl.style.display = 'block';
+    responseEl.style.display = 'none';
+    responseEl.innerHTML = '';
+  }
 
-    function showOracleMessage(msg) {
-      loadingEl.style.display = 'none';
-      responseEl.style.display = 'block';
-      responseEl.innerHTML = msg;
-    }
+  // Hide loading and show the response message
+  function showOracleMessage(msg) {
+    loadingEl.style.display = 'none';
+    responseEl.style.display = 'block';
+    responseEl.innerHTML = msg;
+  }
 
-    // Show loading by default
-    resetOracle();
+  // Reset everything (for when user first loads or wants to start over)
+  function resetOracle() {
+    loadingEl.style.display = 'none';
+    responseEl.style.display = 'none';
+    responseEl.innerHTML = '';
+  }
 
-    // Listen for messages from Thunkable
-    window.addEventListener('message', (event) => {
-      const data = event.data;
-      if (typeof data === 'string') {
-        if (data.trim().toLowerCase() === 'reset') {
-          resetOracle();
-        } else {
-          showOracleMessage(data);
-        }
+  // Hide everything at page load
+  resetOracle();
+
+  // Listen for messages from Thunkable or external code
+  window.addEventListener('message', (event) => {
+    const data = event.data;
+
+    if (typeof data === 'string') {
+      const text = data.trim().toLowerCase();
+
+      if (text === 'reset') {
+        resetOracle();
+      } else if (text === 'loading') {
+        // Thunkable can send 'loading' when user clicks Submit
+        showLoading();
+      } else {
+        // Any other message is treated as a response from OpenAI
+        showOracleMessage(data);
       }
-    });
-  </script>
+    }
+  });
+</script>
 </body>
 </html>
