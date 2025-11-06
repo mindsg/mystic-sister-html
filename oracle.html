@@ -12,13 +12,13 @@
       line-height: 1.5;
       margin: 0;
       padding: 20px;
-      text-align: left;               /* whole page left-aligned */
+      text-align: left;
       overflow-x: hidden;
     }
 
-    /* centered header area */
+    /* header area */
     #top-center {
-      margin-top: 30%;
+      padding-top: 60px;              /* was margin-top:30%; now tighter */
       text-align: center;
     }
 
@@ -38,24 +38,25 @@
       opacity: 0.9;
     }
 
-    /* response container: block centered, text left-aligned */
+    /* response container */
     #response {
       display: none;
       animation: fadeIn 300ms ease-in;
-      margin-top: 40px;
+      margin-top: 24px;
       max-width: 640px;
       margin-left: auto;
       margin-right: auto;
-      white-space: pre-wrap;
+      white-space: pre-line;          /* preserve single newlines nicely */
       text-align: left;
     }
     #response * { text-align: left !important; }
 
-    /* tighten paragraph spacing for any <p> elements */
+    /* tighter paragraph spacing */
     #response p {
-      margin-top: 0.5em;
-      margin-bottom: 0.5em;
+      margin-top: 0.25em;
+      margin-bottom: 0.25em;
     }
+    #response br { line-height: 1.2; }
 
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   </style>
@@ -70,29 +71,34 @@
     </div>
   </div>
 
-  <!-- left-aligned response text (container centered) -->
+  <!-- response area -->
   <div id="response"></div>
 
   <script>
+    const listeningEl = document.getElementById('listening');
     const loadingEl = document.getElementById('loading');
     const responseEl = document.getElementById('response');
 
     function showLoading() {
+      listeningEl.style.display = 'none';
       loadingEl.style.display = 'block';
       responseEl.style.display = 'none';
       responseEl.innerHTML = '';
     }
 
     function showResponse(msg) {
+      listeningEl.style.display = 'none';
       loadingEl.style.display = 'none';
       responseEl.style.display = 'block';
 
-      // normalize paragraph spacing: collapse 2+ newlines into 1
+      // collapse double newlines to single
       const cleaned = msg.replace(/\n{2,}/g, '\n');
       responseEl.innerHTML = cleaned;
+      window.scrollTo(0, 0);
     }
 
     function resetOracle() {
+      listeningEl.style.display = 'block';
       loadingEl.style.display = 'none';
       responseEl.style.display = 'none';
       responseEl.innerHTML = '';
@@ -101,10 +107,7 @@
     // initial state
     resetOracle();
 
-    // Thunkable → Web Viewer messages:
-    //   "loading" shows gif
-    //   "reset" hides gif/response
-    //   anything else = AI reply html/text
+    // Thunkable → WebViewer bridge
     window.addEventListener('message', (event) => {
       const data = event.data;
       if (typeof data !== 'string') return;
