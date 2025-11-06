@@ -12,51 +12,36 @@
       line-height: 1.5;
       margin: 0;
       padding: 20px;
-      text-align: left;
+      text-align: left;   /* keep your original left alignment */
       overflow-x: hidden;
     }
 
-    /* header area */
+    /* header area (only change here: padding instead of huge margin) */
     #top-center {
-      padding-top: 60px;              /* brings content higher than before */
+      padding-top: 60px;  /* was margin-top: 30% */
       text-align: center;
     }
 
-    #listening {
-      font-style: italic;
-      font-size: 1.2em;
-    }
+    #listening { font-style: italic; font-size: 1.2em; }
 
-    #loading {
-      display: none;
-      margin-top: 16px;
-    }
+    #loading { display: none; margin-top: 16px; }
+    #loading img { width: 120px; height: auto; opacity: 0.9; }
 
-    #loading img {
-      width: 120px;
-      height: auto;
-      opacity: 0.9;
-    }
-
-    /* response container */
+    /* response container: use your original styling */
     #response {
       display: none;
       animation: fadeIn 300ms ease-in;
-      margin-top: 24px;
+      margin-top: 40px;          /* keep your original spacing */
       max-width: 640px;
       margin-left: auto;
       margin-right: auto;
-      white-space: pre-line;          /* preserves single newlines nicely */
+      white-space: pre-wrap;      /* keep original (no change) */
       text-align: left;
     }
     #response * { text-align: left !important; }
 
-    /* tighter paragraph spacing */
-    #response p {
-      margin-top: 0.25em;
-      margin-bottom: 0.25em;
-    }
-    #response br { line-height: 1.2; }
+    /* keep your original paragraph rhythm */
+    #response p { margin-top: 0.5em; margin-bottom: 0.5em; }
 
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   </style>
@@ -71,47 +56,42 @@
     </div>
   </div>
 
-  <!-- response area -->
+  <!-- left-aligned response text (container centered) -->
   <div id="response"></div>
 
   <script>
     const listeningEl = document.getElementById('listening');
-    const loadingEl = document.getElementById('loading');
-    const responseEl = document.getElementById('response');
+    const loadingEl   = document.getElementById('loading');
+    const responseEl  = document.getElementById('response');
 
     function showLoading() {
+      /* NEW: hide “listening” when loading */
       listeningEl.style.display = 'none';
-      loadingEl.style.display = 'block';
-      responseEl.style.display = 'none';
-      responseEl.innerHTML = '';
+      loadingEl.style.display   = 'block';
+      responseEl.style.display  = 'none';
+      responseEl.innerHTML      = '';
     }
 
     function showResponse(msg) {
+      /* NEW: hide “listening” when showing answer */
       listeningEl.style.display = 'none';
-      loadingEl.style.display = 'none';
-      responseEl.style.display = 'block';
-
-      // Defensive: ensure string and strip HTML/body wrappers to avoid crash
-      if (typeof msg !== 'string') msg = String(msg || '');
-      let cleaned = msg
-        .replace(/<\/?html>/gi, '')
-        .replace(/<\/?body.*?>/gi, '')
-        .replace(/\n{2,}/g, '\n');
-
-      responseEl.innerHTML = cleaned;
+      loadingEl.style.display   = 'none';
+      responseEl.style.display  = 'block';
+      responseEl.innerHTML      = (typeof msg === 'string') ? msg : String(msg || '');
     }
 
     function resetOracle() {
+      /* unchanged behavior */
       listeningEl.style.display = 'block';
-      loadingEl.style.display = 'none';
-      responseEl.style.display = 'none';
-      responseEl.innerHTML = '';
+      loadingEl.style.display   = 'none';
+      responseEl.style.display  = 'none';
+      responseEl.innerHTML      = '';
     }
 
     // initial state
     resetOracle();
 
-    // Thunkable → WebViewer bridge
+    // Thunkable → WebViewer messages (unchanged semantics)
     window.addEventListener('message', (event) => {
       const data = event.data;
       if (typeof data !== 'string') return;
@@ -122,7 +102,7 @@
       } else if (t === 'loading') {
         showLoading();
       } else {
-        showResponse(data);
+        showResponse(data);  // no extra processing, exactly like your original
       }
     });
   </script>
