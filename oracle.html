@@ -2,12 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta viewport="width=device-width, initial-scale=1.0" />
   <title>Mystic Sister Oracle</title>
   <style>
     /* ------------------------------------------------------
        Custom Font: Rotunda Veneta
-       (Make sure the paths match your GitHub structure)
     ------------------------------------------------------ */
     @font-face {
       font-family: 'RotundaVeneta';
@@ -17,7 +16,6 @@
       font-style: normal;
     }
 
-    /* Class for listening text */
     .rotunda {
       font-family: 'RotundaVeneta', 'Georgia', serif;
       letter-spacing: 0.5px;
@@ -34,7 +32,6 @@
       overflow-x: hidden;
     }
 
-    /* header area */
     #top-center {
       padding-top: 60px;
       text-align: center;
@@ -43,7 +40,6 @@
     #listening {
       font-style: normal;
       font-size: 1.6em;
-      /* Apply Rotunda to this element */
       font-family: 'RotundaVeneta', 'Georgia', serif;
     }
 
@@ -82,16 +78,22 @@
 <body>
 
   <div id="top-center">
-    <!-- Added class rotunda just for clarity if needed -->
     <div id="listening" class="rotunda">Sister is listening...</div>
     <div id="loading">
-      <img src="assets/loading.gif" alt="Loading..." />
+      <!-- ADDING cache-buster -->
+      <img src="assets/loading.gif?v=1" alt="Loading..." />
     </div>
   </div>
 
   <div id="response"></div>
 
   <script>
+    /* ------------------------------------------------------
+       PRELOAD THE GIF (fixes intermittent loading)
+    ------------------------------------------------------ */
+    const preloadGIF = new Image();
+    preloadGIF.src = "assets/loading.gif?v=1";
+
     const listeningEl = document.getElementById('listening');
     const loadingEl = document.getElementById('loading');
     const responseEl = document.getElementById('response');
@@ -152,12 +154,11 @@
     resetOracle();
 
     /* ------------------------------------------------------
-       2) Message handler from Thunkable
+       2) Message handler
     ------------------------------------------------------ */
     window.addEventListener('message', (event) => {
       let data = event.data;
 
-      // If string → treat normally as before
       if (typeof data === 'string') {
         const t = data.trim().toLowerCase();
 
@@ -171,10 +172,7 @@
         return;
       }
 
-      // If object → new enhanced protocol
       if (typeof data === "object" && data !== null) {
-
-        /* listeningStatus = first-time greeting on page open */
         if (data.type === "listeningStatus" && data.sister) {
           const key = data.sister.toLowerCase();
           const line = firstListenLines[key] || "She is listening…";
@@ -182,7 +180,6 @@
           return;
         }
 
-        /* listeningStatusNext = greeting after hitting New Reading */
         if (data.type === "listeningStatusNext" && data.sister) {
           const key = data.sister.toLowerCase();
           const line = followupListenLines[key] || "She is listening again…";
