@@ -5,6 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mystic Sister Oracle</title>
   <style>
+    /* ------------------------------------------------------
+       Custom Font: Rotunda Veneta
+       (Make sure the paths match your GitHub structure)
+    ------------------------------------------------------ */
+    @font-face {
+      font-family: 'RotundaVeneta';
+      src: url('fonts/RotundaVeneta.woff2') format('woff2'),
+           url('fonts/RotundaVeneta.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    /* Class for listening text */
+    .rotunda {
+      font-family: 'RotundaVeneta', 'Georgia', serif;
+      letter-spacing: 0.5px;
+    }
+
     body {
       background-color: #FFFBF5;
       color: #000;
@@ -25,6 +43,8 @@
     #listening {
       font-style: italic;
       font-size: 1.2em;
+      /* Apply Rotunda to this element */
+      font-family: 'RotundaVeneta', 'Georgia', serif;
     }
 
     #loading {
@@ -62,7 +82,8 @@
 <body>
 
   <div id="top-center">
-    <div id="listening"><em>Sister is listening...</em></div>
+    <!-- Added class rotunda just for clarity if needed -->
+    <div id="listening" class="rotunda"><em>Sister is listening...</em></div>
     <div id="loading">
       <img src="assets/loading.gif" alt="Loading..." />
     </div>
@@ -170,7 +191,6 @@
         }
       }
 
-      // fallback (shouldn’t ever hit this)
       console.log("Unknown message received:", data);
     });
   </script>
