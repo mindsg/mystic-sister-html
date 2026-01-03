@@ -43,14 +43,23 @@
       font-family: 'RotundaVeneta', 'Georgia', serif;
     }
 
+    /* 🔒 HARDENED: loader always laid out */
     #loading {
-      display: none;
       margin-top: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 120ms ease-in;
     }
 
+    #loading.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* 🔒 HARDENED: fixed size prevents race conditions */
     #loading img {
       width: 120px;
-      height: auto;
+      height: 120px;
       opacity: 0.9;
     }
 
@@ -79,9 +88,12 @@
 
   <div id="top-center">
     <div id="listening" class="rotunda">Sister is listening...</div>
+
     <div id="loading">
-      <!-- ADDING cache-buster -->
-      <img src="https://mindsg.github.io/mystic-sister-html/assets/loading.gif?v=1" alt="Loading..." />
+      <img
+        src="https://mindsg.github.io/mystic-sister-html/assets/loading.gif?v=3"
+        alt="Loading..."
+      />
     </div>
   </div>
 
@@ -89,17 +101,17 @@
 
   <script>
     /* ------------------------------------------------------
-       PRELOAD THE GIF (fixes intermittent loading)
+       PRELOAD THE GIF (ensures decode before first show)
     ------------------------------------------------------ */
     const preloadGIF = new Image();
-    preloadGIF.src = "https://mindsg.github.io/mystic-sister-html/assets/loading.gif?v=1";
+    preloadGIF.src = "https://mindsg.github.io/mystic-sister-html/assets/loading.gif?v=3";
 
     const listeningEl = document.getElementById('listening');
     const loadingEl = document.getElementById('loading');
     const responseEl = document.getElementById('response');
 
     /* ------------------------------------------------------
-       1) Sister-specific "listening" messages
+       Sister-specific listening messages
     ------------------------------------------------------ */
     const firstListenLines = {
       flower: "Flower is here with you… just breathe, love.",
@@ -121,7 +133,7 @@
     function setListeningMessage(msg) {
       listeningEl.innerHTML = msg;
       listeningEl.style.display = 'block';
-      loadingEl.style.display = 'none';
+      loadingEl.classList.remove('is-visible');
       responseEl.style.display = 'none';
       responseEl.innerHTML = '';
     }
@@ -132,14 +144,14 @@
 
     function showLoading() {
       listeningEl.style.display = 'none';
-      loadingEl.style.display = 'block';
+      loadingEl.classList.add('is-visible');
       responseEl.style.display = 'none';
       responseEl.innerHTML = '';
     }
 
     function showResponse(msg) {
       listeningEl.style.display = 'none';
-      loadingEl.style.display = 'none';
+      loadingEl.classList.remove('is-visible');
       responseEl.style.display = 'block';
 
       if (typeof msg !== 'string') msg = String(msg || '');
@@ -154,7 +166,7 @@
     resetOracle();
 
     /* ------------------------------------------------------
-       2) Message handler
+       Message handler
     ------------------------------------------------------ */
     window.addEventListener('message', (event) => {
       let data = event.data;
