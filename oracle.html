@@ -79,19 +79,43 @@
   <div id="top-center">
     <div id="listening" class="rotunda">Sister is listening...</div>
 
-    <div id="loading">
-      <!-- 🔁 CHANGED: GIF → MP4 -->
-      <video
-        id="loadingVideo"
-        autoplay
-        loop
-        muted
-        playsinline
-        webkit-playsinline
-      >
-        <source src="https://mindsg.github.io/mystic-sister-html/assets/loading.mp4?v=1" type="video/mp4">
-      </video>
-    </div>
+   <div id="loading" style="display:none;">
+  <iframe
+    src="data:text/html,
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 120px;
+      height: 120px;
+      background: transparent;
+      overflow: hidden;
+    }
+    video {
+      width: 120px;
+      height: 120px;
+      object-fit: contain;
+    }
+  </style>
+</head>
+<body>
+  <video autoplay loop muted playsinline webkit-playsinline>
+    <source src='https://mindsg.github.io/mystic-sister-html/assets/loading.mp4?v=1' type='video/mp4'>
+  </video>
+</body>
+</html>"
+    width="120"
+    height="120"
+    frameborder="0"
+    scrolling="no"
+    allow="autoplay"
+    style="border:none;"
+  ></iframe>
+</div>
   </div>
 
   <div id="response"></div>
