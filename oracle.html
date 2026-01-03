@@ -40,16 +40,27 @@
       font-family: 'RotundaVeneta', 'Georgia', serif;
     }
 
+    /* ✅ IMPORTANT: do NOT use display:none for the loading container */
     #loading {
-      display: none;
       margin-top: 16px;
+      height: 120px;              /* fixed footprint like your GIF */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;                 /* hidden by default */
+      pointer-events: none;
+      transition: opacity 120ms ease-in;
     }
 
-    /* 🔁 loader now iframe-based, same footprint as GIF */
-    #loading iframe {
+    #loading.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #loadingVideo {
       width: 120px;
       height: 120px;
-      border: none;
+      object-fit: contain;        /* behaves like an image */
       opacity: 0.9;
     }
 
@@ -79,15 +90,18 @@
   <div id="top-center">
     <div id="listening" class="rotunda">Sister is listening...</div>
 
+    <!-- ✅ video stays inside this 120x120 box -->
     <div id="loading">
-      <iframe
-        src="https://mindsg.github.io/mystic-sister-html/assets/loading-video.html?v=1"
-        width="120"
-        height="120"
-        frameborder="0"
-        scrolling="no"
-        allow="autoplay"
-      ></iframe>
+      <video
+        id="loadingVideo"
+        muted
+        playsinline
+        webkit-playsinline
+        loop
+        preload="auto"
+      >
+        <source src="https://mindsg.github.io/mystic-sister-html/assets/loading.mp4?v=1" type="video/mp4" />
+      </video>
     </div>
   </div>
 
@@ -96,6 +110,7 @@
   <script>
     const listeningEl = document.getElementById('listening');
     const loadingEl = document.getElementById('loading');
+    const loadingVideo = document.getElementById('loadingVideo');
     const responseEl = document.getElementById('response');
 
     const firstListenLines = {
@@ -115,9 +130,11 @@
     function setListeningMessage(msg) {
       listeningEl.innerHTML = msg;
       listeningEl.style.display = 'block';
-      loadingEl.style.display = 'none';
+      loadingEl.classList.remove('is-visible');
       responseEl.style.display = 'none';
       responseEl.innerHTML = '';
+
+      if (loadingVideo) loadingVideo.pause();
     }
 
     function resetOracle() {
@@ -126,14 +143,24 @@
 
     function showLoading() {
       listeningEl.style.display = 'none';
-      loadingEl.style.display = 'block';
       responseEl.style.display = 'none';
       responseEl.innerHTML = '';
+
+      loadingEl.classList.add('is-visible');
+
+      // ✅ Attempt play after it is "rendered" (iOS likes this)
+      if (loadingVideo) {
+        loadingVideo.currentTime = 0;
+        const p = loadingVideo.play();
+        if (p && typeof p.catch === "function") p.catch(() => {});
+      }
     }
 
     function showResponse(msg) {
+      loadingEl.classList.remove('is-visible');
+      if (loadingVideo) loadingVideo.pause();
+
       listeningEl.style.display = 'none';
-      loadingEl.style.display = 'none';
       responseEl.style.display = 'block';
 
       if (typeof msg !== 'string') msg = String(msg || '');
