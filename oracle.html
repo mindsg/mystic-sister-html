@@ -40,14 +40,14 @@
       font-family: 'RotundaVeneta', 'Georgia', serif;
     }
 
-    /* ✅ IMPORTANT: do NOT use display:none for the loading container */
+    /* 🔁 CHANGED: loading container now always laid out */
     #loading {
       margin-top: 16px;
-      height: 120px;              /* fixed footprint like your GIF */
+      height: 120px;
       display: flex;
       justify-content: center;
       align-items: center;
-      opacity: 0;                 /* hidden by default */
+      opacity: 0;
       pointer-events: none;
       transition: opacity 120ms ease-in;
     }
@@ -57,10 +57,22 @@
       pointer-events: auto;
     }
 
-    #loadingVideo {
+    /* 🔁 CHANGED: fixed-size wrapper */
+    .video-wrapper {
+      position: relative;
       width: 120px;
       height: 120px;
-      object-fit: contain;        /* behaves like an image */
+      overflow: hidden;
+    }
+
+    /* 🔁 CHANGED: video painted inside wrapper, not layout owner */
+    .video-wrapper video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 120px;
+      height: 120px;
+      object-fit: contain;
       opacity: 0.9;
     }
 
@@ -90,18 +102,20 @@
   <div id="top-center">
     <div id="listening" class="rotunda">Sister is listening...</div>
 
-    <!-- ✅ video stays inside this 120x120 box -->
+    <!-- 🔁 CHANGED: wrapper added -->
     <div id="loading">
-      <video
-        id="loadingVideo"
-        muted
-        playsinline
-        webkit-playsinline
-        loop
-        preload="auto"
-      >
-        <source src="https://mindsg.github.io/mystic-sister-html/assets/loading.mp4?v=1" type="video/mp4" />
-      </video>
+      <div class="video-wrapper">
+        <video
+          id="loadingVideo"
+          muted
+          loop
+          preload="auto"
+          playsinline
+          webkit-playsinline
+        >
+          <source src="https://mindsg.github.io/mystic-sister-html/assets/loading.mp4?v=1" type="video/mp4">
+        </video>
+      </div>
     </div>
   </div>
 
@@ -133,7 +147,6 @@
       loadingEl.classList.remove('is-visible');
       responseEl.style.display = 'none';
       responseEl.innerHTML = '';
-
       if (loadingVideo) loadingVideo.pause();
     }
 
@@ -148,11 +161,10 @@
 
       loadingEl.classList.add('is-visible');
 
-      // ✅ Attempt play after it is "rendered" (iOS likes this)
       if (loadingVideo) {
         loadingVideo.currentTime = 0;
         const p = loadingVideo.play();
-        if (p && typeof p.catch === "function") p.catch(() => {});
+        if (p && p.catch) p.catch(() => {});
       }
     }
 
