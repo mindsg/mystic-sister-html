@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mystic Sister Oracle</title>
   <style>
-    /* ------------------------------------------------------
-       Custom Font: Rotunda Veneta
-    ------------------------------------------------------ */
     @font-face {
       font-family: 'RotundaVeneta';
       src: url('fonts/RotundaVeneta.woff2') format('woff2'),
@@ -48,7 +45,8 @@
       margin-top: 16px;
     }
 
-    #loading img {
+    /* 🔁 CHANGED: img → video */
+    #loading video {
       width: 120px;
       height: auto;
       opacity: 0.9;
@@ -79,28 +77,31 @@
 
   <div id="top-center">
     <div id="listening" class="rotunda">Sister is listening...</div>
+
     <div id="loading">
-      <!-- ADDING cache-buster -->
-      <img src="https://mindsg.github.io/mystic-sister-html/assets/loading.gif?v=1" alt="Loading..." />
+      <!-- 🔁 CHANGED: GIF → MP4 -->
+      <video
+        id="loadingVideo"
+        autoplay
+        loop
+        muted
+        playsinline
+      >
+        <source src="https://mindsg.github.io/mystic-sister-html/assets/loading.mp4?v=1" type="video/mp4">
+      </video>
     </div>
   </div>
 
   <div id="response"></div>
 
   <script>
-    /* ------------------------------------------------------
-       PRELOAD THE GIF (fixes intermittent loading)
-    ------------------------------------------------------ */
-    const preloadGIF = new Image();
-    preloadGIF.src = "https://mindsg.github.io/mystic-sister-html/assets/loading.gif?v=1";
-
     const listeningEl = document.getElementById('listening');
     const loadingEl = document.getElementById('loading');
     const responseEl = document.getElementById('response');
 
-    /* ------------------------------------------------------
-       1) Sister-specific "listening" messages
-    ------------------------------------------------------ */
+    /* 🔁 ADDED */
+    const loadingVideo = document.getElementById('loadingVideo');
+
     const firstListenLines = {
       flower: "Flower is here with you… just breathe, love.",
       candle: "Candle’s flame softens… she’s listening.",
@@ -115,9 +116,6 @@
       mirror: "Mirror settles… she’s listening once more."
     };
 
-    /* ------------------------------------------------------
-       Helpers
-    ------------------------------------------------------ */
     function setListeningMessage(msg) {
       listeningEl.innerHTML = msg;
       listeningEl.style.display = 'block';
@@ -127,6 +125,7 @@
     }
 
     function resetOracle() {
+      if (loadingVideo) loadingVideo.pause();   // 🔁 ADDED
       setListeningMessage("Sister is listening...");
     }
 
@@ -135,12 +134,19 @@
       loadingEl.style.display = 'block';
       responseEl.style.display = 'none';
       responseEl.innerHTML = '';
+
+      if (loadingVideo) {
+        loadingVideo.currentTime = 0;
+        loadingVideo.play().catch(() => {});
+      }
     }
 
     function showResponse(msg) {
       listeningEl.style.display = 'none';
       loadingEl.style.display = 'none';
       responseEl.style.display = 'block';
+
+      if (loadingVideo) loadingVideo.pause();   // 🔁 ADDED
 
       if (typeof msg !== 'string') msg = String(msg || '');
       let cleaned = msg
@@ -153,9 +159,6 @@
 
     resetOracle();
 
-    /* ------------------------------------------------------
-       2) Message handler
-    ------------------------------------------------------ */
     window.addEventListener('message', (event) => {
       let data = event.data;
 
