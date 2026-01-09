@@ -65,6 +65,14 @@
       opacity: 0.9;
     }
 
+    /* 🔹 NEW: Ritual loading text */
+    #loading-text {
+      margin-top: 14px;
+      font-size: 1.2em;
+      opacity: 0;
+      transition: opacity 600ms ease;
+    }
+
     /* Collapse loader space once response is visible */
     body.has-response #loading {
       height: 0;
@@ -81,7 +89,7 @@
       margin-left: auto;
       margin-right: auto;
       text-align: left;
-      white-space: normal; /* 🔑 fixes copy/paste word-joining */
+      white-space: normal;
       animation: fadeIn 300ms ease-in;
     }
 
@@ -110,6 +118,8 @@
         src="https://mindsg.github.io/mystic-sister-html/assets/loading.gif?v=4"
         alt="Loading..."
       />
+      <!-- 🔹 NEW: Ritual text element -->
+      <div id="loading-text" class="rotunda"></div>
     </div>
   </div>
 
@@ -126,6 +136,53 @@
     const listeningEl = document.getElementById('listening');
     const loadingEl = document.getElementById('loading');
     const responseEl = document.getElementById('response');
+    const loadingTextEl = document.getElementById('loading-text');
+
+    /* ------------------------------------------------------
+       Ritual loading lines (run once, then hold)
+    ------------------------------------------------------ */
+    const ritualLines = [
+      "Sister has heard you…",
+      "Shuffling the cards…",
+      "Aligning the symbols…",
+      "Reading the pattern…",
+      "One moment…"
+    ];
+
+    let ritualIndex = 0;
+    let ritualInterval = null;
+
+    function startRitualText() {
+      stopRitualText(); // safety
+
+      ritualIndex = 0;
+      loadingTextEl.innerText = ritualLines[0];
+      loadingTextEl.style.opacity = 1;
+
+      ritualInterval = setInterval(() => {
+        if (ritualIndex >= ritualLines.length - 1) {
+          clearInterval(ritualInterval);
+          ritualInterval = null;
+          return;
+        }
+
+        loadingTextEl.style.opacity = 0;
+
+        setTimeout(() => {
+          ritualIndex++;
+          loadingTextEl.innerText = ritualLines[ritualIndex];
+          loadingTextEl.style.opacity = 1;
+        }, 600);
+      }, 4500);
+    }
+
+    function stopRitualText() {
+      if (ritualInterval) {
+        clearInterval(ritualInterval);
+        ritualInterval = null;
+      }
+      loadingTextEl.style.opacity = 0;
+    }
 
     /* ------------------------------------------------------
        Sister-specific messages
@@ -154,6 +211,8 @@
       listeningEl.style.display = 'block';
 
       loadingEl.classList.remove('is-visible');
+      stopRitualText();
+
       responseEl.style.display = 'none';
       responseEl.innerHTML = '';
     }
@@ -167,6 +226,7 @@
 
       listeningEl.style.display = 'none';
       loadingEl.classList.add('is-visible');
+      startRitualText();
 
       responseEl.style.display = 'none';
       responseEl.innerHTML = '';
@@ -177,6 +237,7 @@
 
       listeningEl.style.display = 'none';
       loadingEl.classList.remove('is-visible');
+      stopRitualText();
 
       responseEl.style.display = 'block';
 
