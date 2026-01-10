@@ -226,7 +226,11 @@
       document.body.classList.remove('has-response');
 
       listeningEl.style.display = 'none';
+      
+      loadingEl.classList.remove('is-visible');
+      void loadingEl.offsetHeight; // 🔑 force reflow (fixes iOS background glitch)
       loadingEl.classList.add('is-visible');
+      
       startRitualText();
 
       responseEl.style.display = 'none';
