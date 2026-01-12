@@ -229,12 +229,20 @@
     }
 
     // string commands
-    if (typeof data === 'string') {
-      const t = data.trim().toLowerCase();
-      if (t === 'reset') return resetOracle();
-      if (t === 'loading') return showLoading();
-      return showResponse(data);
-    }
+if (typeof data === 'string') {
+  const trimmed = data.trim();
+
+  // ✅ Ignore control objects sent as strings
+  if (trimmed.startsWith('{') && trimmed.includes('"type"')) {
+    return;
+  }
+
+  const t = trimmed.toLowerCase();
+  if (t === 'reset') return resetOracle();
+  if (t === 'loading') return showLoading();
+
+  return showResponse(data);
+}
 
     // object messages
     if (data && typeof data === 'object') {
