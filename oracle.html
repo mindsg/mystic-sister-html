@@ -6,15 +6,10 @@
   <title>Mystic Sister Oracle</title>
 
   <style>
-    /* ------------------------------------------------------
-       Custom Font: Rotunda Veneta
-    ------------------------------------------------------ */
     @font-face {
       font-family: 'RotundaVeneta';
       src: url('fonts/RotundaVeneta.woff2') format('woff2'),
            url('fonts/RotundaVeneta.woff') format('woff');
-      font-weight: normal;
-      font-style: normal;
     }
 
     .rotunda {
@@ -29,7 +24,6 @@
       line-height: 1.55;
       margin: 0;
       padding: 20px;
-      text-align: left;
       overflow-x: hidden;
     }
 
@@ -40,12 +34,8 @@
 
     #listening {
       font-size: 1.6em;
-      font-family: 'RotundaVeneta', 'Georgia', serif;
     }
 
-    /* ------------------------------------------------------
-       Loader (GIF)
-    ------------------------------------------------------ */
     #loading {
       margin-top: 16px;
       height: 180px;
@@ -65,7 +55,6 @@
       opacity: 0.9;
     }
 
-    /* Ritual loading text */
     #loading-text {
       margin-top: 14px;
       font-size: 1.2em;
@@ -75,14 +64,13 @@
       color: #282120;
     }
 
-    /* Subtle pulse for final line */
     .pulse {
       animation: softPulse 2.4s ease-in-out infinite;
     }
 
     @keyframes softPulse {
-      0%   { opacity: 0.85; }
-      50%  { opacity: 1; }
+      0% { opacity: 0.85; }
+      50% { opacity: 1; }
       100% { opacity: 0.85; }
     }
 
@@ -91,26 +79,18 @@
       margin-top: 0;
     }
 
-    /* ------------------------------------------------------
-       Response
-    ------------------------------------------------------ */
     #response {
       display: none;
       margin-top: 8px;
       max-width: 640px;
       margin-left: auto;
       margin-right: auto;
-      text-align: left;
       white-space: normal;
       animation: fadeIn 300ms ease-in;
     }
 
     #response p {
       margin: 0.4em 0;
-    }
-
-    #response br {
-      line-height: 1.2;
     }
 
     @keyframes fadeIn {
@@ -122,221 +102,150 @@
 
 <body>
 
-  <div id="top-center">
-    <div id="listening" class="rotunda">Sister is listening...</div>
+<div id="top-center">
+  <div id="listening" class="rotunda">Sister is listening...</div>
 
-    <div id="loading">
-      <img
-        src="https://mindsg.github.io/mystic-sister-html/assets/loading.gif?v=4"
-        alt="Loading..."
-      />
-      <div id="loading-text" class="rotunda"></div>
-    </div>
+  <div id="loading">
+    <img src="https://mindsg.github.io/mystic-sister-html/assets/loading.gif?v=4" />
+    <div id="loading-text" class="rotunda"></div>
   </div>
+</div>
 
-  <div id="response"></div>
+<div id="response"></div>
 
-  <script>
-    /* Preload GIF */
-    const preloadGIF = new Image();
-    preloadGIF.src =
-      "https://mindsg.github.io/mystic-sister-html/assets/loading.gif?v=4";
+<script>
+  const preloadGIF = new Image();
+  preloadGIF.src = "https://mindsg.github.io/mystic-sister-html/assets/loading.gif?v=4";
 
-    const listeningEl = document.getElementById('listening');
-    const loadingEl = document.getElementById('loading');
-    const responseEl = document.getElementById('response');
-    const loadingTextEl = document.getElementById('loading-text');
+  const listeningEl = document.getElementById('listening');
+  const loadingEl = document.getElementById('loading');
+  const responseEl = document.getElementById('response');
+  const loadingTextEl = document.getElementById('loading-text');
 
-    /* ------------------------------------------------------
-       Ritual loading lines (6 total)
-    ------------------------------------------------------ */
-    const ritualLines = [
-      "Sister has heard you…",
-      "Don’t leave the room…",
-      "Tuning into your story…",
-      "Shuffling the cards…",
-      "Reading the patterns…",
-      "One more moment…"
-    ];
+  const ritualLines = [
+    "Sister has heard you…",
+    "Don’t leave the room…",
+    "Tuning into your story…",
+    "Shuffling the cards…",
+    "Reading the patterns…",
+    "One more moment…"
+  ];
 
-    let ritualIndex = 0;
-    let ritualInterval = null;
+  let ritualIndex = 0;
+  let ritualInterval = null;
 
-    function startRitualText() {
-      stopRitualText();
+  function startRitualText() {
+    stopRitualText();
+    ritualIndex = 0;
+    loadingTextEl.classList.remove('pulse');
+    loadingTextEl.innerText = ritualLines[0];
+    loadingTextEl.style.opacity = 1;
 
-      ritualIndex = 0;
-      loadingTextEl.classList.remove('pulse');
-      loadingTextEl.innerText = ritualLines[0];
-      loadingTextEl.style.opacity = 1;
-
-      ritualInterval = setInterval(() => {
-        if (ritualIndex >= ritualLines.length - 1) {
-          clearInterval(ritualInterval);
-          ritualInterval = null;
-
-          // Final line: soft pulse
-          loadingTextEl.classList.add('pulse');
-          return;
-        }
-
-        loadingTextEl.style.opacity = 0;
-        loadingTextEl.classList.remove('pulse');
-
-        setTimeout(() => {
-          ritualIndex++;
-          loadingTextEl.innerText = ritualLines[ritualIndex];
-          loadingTextEl.style.opacity = 1;
-        }, 600);
-
-      }, 3800);
-    }
-
-    function stopRitualText() {
-      if (ritualInterval) {
+    ritualInterval = setInterval(() => {
+      if (ritualIndex >= ritualLines.length - 1) {
         clearInterval(ritualInterval);
         ritualInterval = null;
-      }
-      loadingTextEl.classList.remove('pulse');
-      loadingTextEl.style.opacity = 0;
-    }
-
-    /* ------------------------------------------------------
-       Sister-specific messages
-    ------------------------------------------------------ */
-    const firstListenLines = {
-      flower: "Flower is listening...",
-      candle: "Candle is listening...",
-      knife: "Knife is listening...",
-      mirror: "Mirror is listening..."
-    };
-
-    const followupListenLines = {
-      flower: "Flower is listening...",
-      candle: "Candle is listening...",
-      knife: "Knife is listening...",
-      mirror: "Mirror is listening..."
-    };
-
-    /* ------------------------------------------------------
-       Helpers
-    ------------------------------------------------------ */
-    function setListeningMessage(msg) {
-      document.body.classList.remove('has-response');
-
-      listeningEl.innerHTML = msg;
-      listeningEl.style.display = 'block';
-
-      loadingEl.classList.remove('is-visible');
-      stopRitualText();
-
-      responseEl.style.display = 'none';
-      responseEl.innerHTML = '';
-    }
-
-    function resetOracle() {
-      setListeningMessage("Sister is listening...");
-    }
-
-    function showLoading() {
-      document.body.classList.remove('has-response');
-
-      listeningEl.style.display = 'none';
-
-      loadingEl.classList.remove('is-visible');
-      void loadingEl.offsetHeight; // 🔑 force reflow (fixes iOS background glitch)
-      loadingEl.classList.add('is-visible');
-
-      startRitualText();
-
-      responseEl.style.display = 'none';
-      responseEl.innerHTML = '';
-    }
-
-    function showResponse(msg) {
-      document.body.classList.add('has-response');
-
-      listeningEl.style.display = 'none';
-      loadingEl.classList.remove('is-visible');
-      stopRitualText();
-
-      responseEl.style.display = 'block';
-
-      if (typeof msg !== 'string') msg = String(msg || '');
-
-      // ✅ NEW: if the message contains literal "\n", turn it into real line breaks
-      msg = msg.replace(/\\n/g, '\n');
-
-      // ✅ If it's plain text, render newlines as <br> so it doesn't show "\n\n"
-      const hasHtmlTags = /<\/?[a-z][\s\S]*>/i.test(msg);
-
-      let cleaned = msg
-        .replace(/<\/?html>/gi, '')
-        .replace(/<\/?body.*?>/gi, '')
-        .replace(/\n{3,}/g, '\n\n');
-
-      if (!hasHtmlTags) {
-        cleaned = cleaned
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/\n/g, "<br>");
-      }
-
-      responseEl.innerHTML = cleaned;
-    }
-
-    resetOracle();
-
-    /* ------------------------------------------------------
-       Message handler
-    ------------------------------------------------------ */
-    window.addEventListener('message', (event) => {
-      const data = event.data;
-
-      // 🔑 NEW: safely parse JSON sent as string
-      if (typeof data === 'string') {
-        const trimmed = data.trim();
-
-        if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
-          try {
-            const parsed = JSON.parse(trimmed);
-            window.dispatchEvent(
-              new MessageEvent('message', { data: parsed })
-            );
-            return;
-          } catch (e) {}
-        }
-
-        const t = trimmed.toLowerCase();
-
-        if (t === "reset") {
-          resetOracle();
-        } else if (t === "loading") {
-          showLoading();
-        } else {
-          showResponse(data);
-        }
+        loadingTextEl.classList.add('pulse');
         return;
       }
 
-      if (typeof data === "object" && data !== null) {
-        if (data.type === "listeningStatus" && data.sister) {
-          const key = data.sister.toLowerCase();
-          setListeningMessage(
-            firstListenLines[key] || "She is listening…"
-          );
-          return;
-        }
+      loadingTextEl.style.opacity = 0;
+      setTimeout(() => {
+        ritualIndex++;
+        loadingTextEl.innerText = ritualLines[ritualIndex];
+        loadingTextEl.style.opacity = 1;
+      }, 600);
+    }, 3800);
+  }
 
-        if (data.type === "listeningStatusNext" && data.sister) {
-          const key = data.sister.toLowerCase();
-          setListeningMessage(
-            followupListenLines[key] || "She is listening again…"
-          );
+  function stopRitualText() {
+    if (ritualInterval) clearInterval(ritualInterval);
+    ritualInterval = null;
+    loadingTextEl.classList.remove('pulse');
+    loadingTextEl.style.opacity = 0;
+  }
+
+  function resetOracle() {
+    document.body.classList.remove('has-response');
+    listeningEl.style.display = 'block';
+    listeningEl.innerText = "Sister is listening...";
+    loadingEl.classList.remove('is-visible');
+    stopRitualText();
+    responseEl.style.display = 'none';
+    responseEl.innerHTML = '';
+  }
+
+  function showLoading() {
+    document.body.classList.remove('has-response');
+    listeningEl.style.display = 'none';
+    loadingEl.classList.remove('is-visible');
+    void loadingEl.offsetHeight; // iOS reflow fix
+    loadingEl.classList.add('is-visible');
+    startRitualText();
+    responseEl.style.display = 'none';
+    responseEl.innerHTML = '';
+  }
+
+  function showResponse(msg) {
+    document.body.classList.add('has-response');
+    loadingEl.classList.remove('is-visible');
+    stopRitualText();
+    listeningEl.style.display = 'none';
+
+    // normalize escaped newlines & quotes
+    msg = String(msg)
+      .replace(/\\n/g, '\n')
+      .replace(/\\"/g, '"');
+
+    msg = msg
+      .replace(/<\/?html>/gi, '')
+      .replace(/<\/?body.*?>/gi, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .replace(/\n/g, '<br>');
+
+    responseEl.innerHTML = msg;
+    responseEl.style.display = 'block';
+  }
+
+  resetOracle();
+
+  window.addEventListener('message', (event) => {
+    let data = event.data;
+
+    // unwrap quoted strings like "\"loading\""
+    if (typeof data === 'string') {
+      const trimmed = data.trim();
+
+      if (
+        (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+        (trimmed.startsWith("'") && trimmed.endsWith("'"))
+      ) {
+        try {
+          data = JSON.parse(trimmed);
+        } catch {
+          data = trimmed.slice(1, -1);
         }
       }
-    });
-  </script>
+    }
+
+    // string commands
+    if (typeof data === 'string') {
+      const t = data.trim().toLowerCase();
+      if (t === 'reset') return resetOracle();
+      if (t === 'loading') return showLoading();
+      return showResponse(data);
+    }
+
+    // object messages
+    if (data && typeof data === 'object') {
+      if (data.type === 'listeningStatus' && data.sister) {
+        listeningEl.innerText = `${data.sister} is listening...`;
+        listeningEl.style.display = 'block';
+        return;
+      }
+    }
+  });
+</script>
+
 </body>
 </html>
