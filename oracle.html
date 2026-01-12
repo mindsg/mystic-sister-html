@@ -264,17 +264,25 @@ window.addEventListener('message', (event) => {
 const data = event.data;
 
 if (typeof data === 'string') {
-const t = data.trim().toLowerCase();
+  const trimmed = data.trim();
 
-if (t === "reset") {
-resetOracle();
-} else if (t === "loading") {
-showLoading();
-} else {
-showResponse(data);
+  // ✅ Ignore stringified control objects
+  if (trimmed.startsWith('{') && trimmed.includes('"type"')) {
+    return;
+  }
+
+  const t = trimmed.toLowerCase();
+
+  if (t === "reset") {
+    resetOracle();
+  } else if (t === "loading") {
+    showLoading();
+  } else {
+    showResponse(data);
+  }
+  return;
 }
-return;
-}
+
 
 if (typeof data === "object" && data !== null) {
 if (data.type === "listeningStatus" && data.sister) {
