@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mystic Sister Oracle</title>
-
   <style>
     /* ------------------------------------------------------
        Custom Font: Rotunda Veneta
@@ -26,7 +25,7 @@
       background-color: #FFFBF5;
       color: #000;
       font-family: 'Georgia', serif;
-      line-height: 1.55;
+      line-height: 1.5;
       margin: 0;
       padding: 20px;
       text-align: left;
@@ -39,77 +38,88 @@
     }
 
     #listening {
+      font-style: normal;
       font-size: 1.6em;
       font-family: 'RotundaVeneta', 'Georgia', serif;
     }
 
-    /* ------------------------------------------------------
-       Loader (GIF) – stable, never removed from layout
-    ------------------------------------------------------ */
-    #loading {
-      margin-top: 16px;
-      height: 180px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 120ms ease-in;
-    }
 
-    #loading.is-visible {
-      opacity: 1;
-      pointer-events: auto;
+    #loading {
+      display: none;
+      margin-top: 16px;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 
     #loading img {
-      width: 180px;
-      height: 180px;
+
+
+
+
+      width: 120px;
+      height: auto;
+
       opacity: 0.9;
     }
 
-    /* Collapse loader space once response is visible */
-    body.has-response #loading {
-      height: 0;
-      margin-top: 0;
-    }
-
-    /* ------------------------------------------------------
-       Response
-    ------------------------------------------------------ */
     #response {
       display: none;
-      margin-top: 8px;
+      animation: fadeIn 300ms ease-in;
+      margin-top: 24px;
       max-width: 640px;
       margin-left: auto;
       margin-right: auto;
+      white-space: pre-line;
       text-align: left;
-      white-space: normal; /* 🔑 fixes copy/paste word-joining */
-      animation: fadeIn 300ms ease-in;
     }
+    #response * { text-align: left !important; }
 
     #response p {
-      margin: 0.4em 0;
+      margin-top: 0.25em;
+      margin-bottom: 0.25em;
     }
+    #response br { line-height: 1.2; }
 
-    #response br {
-      line-height: 1.2;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   </style>
 </head>
-
 <body>
 
   <div id="top-center">
     <div id="listening" class="rotunda">Sister is listening...</div>
 
+
     <div id="loading">
-      <img
-        src="https://mindsg.github.io/mystic-sister-html/assets/loading.gif?v=4"
-        alt="Loading..."
-      />
+      <!-- ADDING cache-buster -->
+      <img src="https://mindsg.github.io/mystic-sister-html/assets/loading.gif?v=1" alt="Loading..." />
+
+
+
+
+
+
+
+
+
+
     </div>
   </div>
 
@@ -117,45 +127,43 @@
 
   <script>
     /* ------------------------------------------------------
-       Preload GIF (prevents first-load flake)
+       PRELOAD THE GIF (fixes intermittent loading)
     ------------------------------------------------------ */
     const preloadGIF = new Image();
-    preloadGIF.src =
-      "https://mindsg.github.io/mystic-sister-html/assets/loading.gif?v=4";
+    preloadGIF.src = "https://mindsg.github.io/mystic-sister-html/assets/loading.gif?v=1";
 
     const listeningEl = document.getElementById('listening');
     const loadingEl = document.getElementById('loading');
+
     const responseEl = document.getElementById('response');
 
     /* ------------------------------------------------------
-       Sister-specific messages
+       1) Sister-specific "listening" messages
     ------------------------------------------------------ */
     const firstListenLines = {
-      flower: "Flower is listening...",
-      candle: "Candle is listening...",
-      knife: "Knife is listening...",
-      mirror: "Mirror is listening..."
+      flower: "Flower is here with you… just breathe, love.",
+      candle: "Candle’s flame softens… she’s listening.",
+      knife: "Knife watches yo bish ass, ready to see the truth.",
+      mirror: "Mirror waits, still and patient, reflecting your heart."
     };
 
     const followupListenLines = {
-      flower: "Flower is listening...",
-      candle: "Candle is listening...",
-      knife: "Knife is listening...",
-      mirror: "Mirror is listening..."
+      flower: "Flower is listening again… whenever you’re ready.",
+      candle: "Candle leans in, her light steady…",
+      knife: "Knife listens closely—tell her what’s next.",
+      mirror: "Mirror settles… she’s listening once more."
     };
 
     /* ------------------------------------------------------
        Helpers
     ------------------------------------------------------ */
     function setListeningMessage(msg) {
-      document.body.classList.remove('has-response');
-
       listeningEl.innerHTML = msg;
       listeningEl.style.display = 'block';
-
-      loadingEl.classList.remove('is-visible');
+      loadingEl.style.display = 'none';
       responseEl.style.display = 'none';
       responseEl.innerHTML = '';
+
     }
 
     function resetOracle() {
@@ -163,29 +171,33 @@
     }
 
     function showLoading() {
-      document.body.classList.remove('has-response');
-
       listeningEl.style.display = 'none';
-      loadingEl.classList.add('is-visible');
-
+      loadingEl.style.display = 'block';
       responseEl.style.display = 'none';
       responseEl.innerHTML = '';
+
+
+
+
+
+
+
+
     }
 
     function showResponse(msg) {
-      document.body.classList.add('has-response');
+
+
 
       listeningEl.style.display = 'none';
-      loadingEl.classList.remove('is-visible');
-
+      loadingEl.style.display = 'none';
       responseEl.style.display = 'block';
 
       if (typeof msg !== 'string') msg = String(msg || '');
-
       let cleaned = msg
         .replace(/<\/?html>/gi, '')
         .replace(/<\/?body.*?>/gi, '')
-        .replace(/\n{3,}/g, '\n\n');
+        .replace(/\n{2,}/g, '\n');
 
       responseEl.innerHTML = cleaned;
     }
@@ -193,10 +205,10 @@
     resetOracle();
 
     /* ------------------------------------------------------
-       Message handler
+       2) Message handler
     ------------------------------------------------------ */
     window.addEventListener('message', (event) => {
-      const data = event.data;
+      let data = event.data;
 
       if (typeof data === 'string') {
         const t = data.trim().toLowerCase();
@@ -214,20 +226,20 @@
       if (typeof data === "object" && data !== null) {
         if (data.type === "listeningStatus" && data.sister) {
           const key = data.sister.toLowerCase();
-          setListeningMessage(
-            firstListenLines[key] || "She is listening…"
-          );
+          const line = firstListenLines[key] || "She is listening…";
+          setListeningMessage(line);
           return;
         }
 
         if (data.type === "listeningStatusNext" && data.sister) {
           const key = data.sister.toLowerCase();
-          setListeningMessage(
-            followupListenLines[key] || "She is listening again…"
-          );
+          const line = followupListenLines[key] || "She is listening again…";
+          setListeningMessage(line);
+          return;
         }
       }
+
+      console.log("Unknown message received:", data);
     });
   </script>
 </body>
-</html>
