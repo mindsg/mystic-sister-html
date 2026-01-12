@@ -24,7 +24,6 @@ body {
   line-height: 1.55;
   margin: 0;
   padding: 20px;
-  overflow-x: hidden;
 }
 
 #top-center {
@@ -65,18 +64,13 @@ body {
 }
 
 .pulse {
-  animation: softPulse 2.4s ease-in-out infinite;
+  animation: pulse 2.4s ease-in-out infinite;
 }
 
-@keyframes softPulse {
+@keyframes pulse {
   0% { opacity: 0.85; }
   50% { opacity: 1; }
   100% { opacity: 0.85; }
-}
-
-body.has-response #loading {
-  height: 0;
-  margin-top: 0;
 }
 
 #response {
@@ -85,16 +79,10 @@ body.has-response #loading {
   max-width: 640px;
   margin-left: auto;
   margin-right: auto;
-  animation: fadeIn 300ms ease-in;
 }
 
 #response p {
   margin: 0.4em 0;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
 }
 </style>
 </head>
@@ -128,23 +116,22 @@ const ritualLines = [
 ];
 
 let ritualIndex = 0;
-let ritualInterval = null;
+let ritualTimer = null;
 
-function startRitualText() {
-  stopRitualText();
+function startRitual() {
+  stopRitual();
   ritualIndex = 0;
   loadingTextEl.classList.remove('pulse');
   loadingTextEl.innerText = ritualLines[0];
   loadingTextEl.style.opacity = 1;
 
-  ritualInterval = setInterval(() => {
+  ritualTimer = setInterval(() => {
     if (ritualIndex >= ritualLines.length - 1) {
-      clearInterval(ritualInterval);
-      ritualInterval = null;
+      clearInterval(ritualTimer);
+      ritualTimer = null;
       loadingTextEl.classList.add('pulse');
       return;
     }
-
     loadingTextEl.style.opacity = 0;
     setTimeout(() => {
       ritualIndex++;
@@ -154,77 +141,78 @@ function startRitualText() {
   }, 3800);
 }
 
-function stopRitualText() {
-  if (ritualInterval) clearInterval(ritualInterval);
-  ritualInterval = null;
+function stopRitual() {
+  if (ritualTimer) clearInterval(ritualTimer);
+  ritualTimer = null;
   loadingTextEl.classList.remove('pulse');
   loadingTextEl.style.opacity = 0;
 }
 
-function resetOracle() {
-  document.body.classList.remove('has-response');
-  listeningEl.innerText = "Sister is listening...";
-  listeningEl.style.display = 'block';
-  loadingEl.classList.remove('is-visible');
-  stopRitualText();
-  responseEl.style.display = 'none';
-  responseEl.innerHTML = '';
+function normalize(input) {
+  if (typeof input !== 'string') return input;
+
+  let s = input.trim();
+
+  // remove outer quotes
+  if (
+    (s.startsWith('"') && s.endsWith('"')) ||
+    (s.startsWith("'") && s.endsWith("'"))
+  ) {
+    s = s.slice(1, -1);
+  }
+
+  // unescape
+  s = s
+    .replace(/\\"/g, '"')
+    .replace(/\\n/g, '\n');
+
+  return s;
 }
 
 function showLoading() {
-  document.body.classList.remove('has-response');
   listeningEl.style.display = 'none';
-  loadingEl.classList.remove('is-visible');
-  void loadingEl.offsetHeight;
   loadingEl.classList.add('is-visible');
-  startRitualText();
+  startRitual();
   responseEl.style.display = 'none';
   responseEl.innerHTML = '';
 }
 
 function showResponse(msg) {
-  document.body.classList.add('has-response');
-  listeningEl.style.display = 'none';
   loadingEl.classList.remove('is-visible');
-  stopRitualText();
-
-  if (typeof msg !== 'string') msg = String(msg || '');
-
-  // strip ONLY outer quotes
-  msg = msg.replace(/^"+|"+$/g, '');
-
+  stopRitual();
   responseEl.innerHTML = msg;
   responseEl.style.display = 'block';
 }
 
-resetOracle();
-
 window.addEventListener('message', (event) => {
-  const data = event.data;
+  let data = normalize(event.data);
 
-  if (typeof data === 'string') {
-    const trimmed = data.trim();
-
-    if (trimmed === 'loading') return showLoading();
-    if (trimmed === 'reset') return resetOracle();
-
-    // ignore JSON control strings
-    if (trimmed.startsWith('{') && trimmed.includes('"type"')) return;
-
-    return showResponse(trimmed);
+  if (data === 'loading') {
+    showLoading();
+    return;
   }
 
-  if (data && typeof data === 'object') {
-    if (data.type === 'listeningStatus' && data.sister) {
-      listeningEl.innerText = `${data.sister} is listening...`;
-      listeningEl.style.display = 'block';
+  if (data === 'reset') {
+    listeningEl.innerText = "Sister is listening...";
+    listeningEl.style.display = 'block';
+    responseEl.style.display = 'none';
+    stopRitual();
+    return;
+  }
+
+  // JSON control messages
+  if (data.startsWith('{')) {
+    try {
+      const obj = JSON.parse(data);
+      if (obj.type && obj.sister) {
+        listeningEl.innerText = `${obj.sister} is listening...`;
+        listeningEl.style.display = 'block';
+      }
       return;
-    }
-
-    if (data.type === 'listeningStatusNext' && data.sister) {
-      listeningEl.innerText = `${data.sister} is listening...`;
-    }
+    } catch {}
   }
+
+  showResponse(data);
 });
 </script>
 
