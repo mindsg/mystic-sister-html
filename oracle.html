@@ -6,6 +6,9 @@
 <title>Mystic Sister Oracle</title>
 
 <style>
+/* ------------------------------------------------------
+      Custom Font: Rotunda Veneta
+   ------------------------------------------------------ */
 @font-face {
 font-family: 'RotundaVeneta';
 src: url('fonts/RotundaVeneta.woff2') format('woff2'),
@@ -40,7 +43,9 @@ font-size: 1.6em;
 font-family: 'RotundaVeneta', 'Georgia', serif;
 }
 
-/* Loader */
+/* ------------------------------------------------------
+      Loader (GIF) – stable, never removed from layout
+   ------------------------------------------------------ */
 #loading {
 margin-top: 16px;
 height: 180px;
@@ -60,25 +65,13 @@ height: 180px;
 opacity: 0.9;
 }
 
-/* Ritual loading text */
+/* 🔹 NEW: Ritual loading text */
 #loading-text {
 margin-top: 14px;
 font-size: 1.2em;
-text-align: center;
+      text-align: center;     
 opacity: 0;
 transition: opacity 600ms ease;
-color: #282120;
-}
-
-/* Pulse for final line only */
-.pulse {
-animation: softPulse 2.4s ease-in-out infinite;
-}
-
-@keyframes softPulse {
-0% { opacity: 0.85; }
-50% { opacity: 1; }
-100% { opacity: 0.85; }
 }
 
 /* Collapse loader space once response is visible */
@@ -87,7 +80,9 @@ height: 0;
 margin-top: 0;
 }
 
-/* Response */
+/* ------------------------------------------------------
+      Response
+   ------------------------------------------------------ */
 #response {
 display: none;
 margin-top: 8px;
@@ -124,6 +119,7 @@ to { opacity: 1; }
 src="https://mindsg.github.io/mystic-sister-html/assets/loading.gif?v=4"
 alt="Loading..."
 />
+<!-- 🔹 NEW: Ritual text element -->
 <div id="loading-text" class="rotunda"></div>
 </div>
 </div>
@@ -131,7 +127,9 @@ alt="Loading..."
 <div id="response"></div>
 
 <script>
-/* Preload GIF */
+/* ------------------------------------------------------
+      Preload GIF (prevents first-load flake)
+   ------------------------------------------------------ */
 const preloadGIF = new Image();
 preloadGIF.src =
 "https://mindsg.github.io/mystic-sister-html/assets/loading.gif?v=4";
@@ -141,24 +139,24 @@ const loadingEl = document.getElementById('loading');
 const responseEl = document.getElementById('response');
 const loadingTextEl = document.getElementById('loading-text');
 
-/* Ritual loading lines (6 total) */
+/* ------------------------------------------------------
+      Ritual loading lines (run once, then hold)
+   ------------------------------------------------------ */
 const ritualLines = [
 "Sister has heard you…",
-"Don’t leave the room…",
-"Tuning into your story…",
 "Shuffling the cards…",
-"Reading the patterns…",
-"One more moment…"
+"Aligning the symbols…",
+"Reading the pattern…",
+"One moment…"
 ];
 
 let ritualIndex = 0;
 let ritualInterval = null;
 
 function startRitualText() {
-stopRitualText();
+stopRitualText(); // safety
 
 ritualIndex = 0;
-loadingTextEl.classList.remove('pulse');
 loadingTextEl.innerText = ritualLines[0];
 loadingTextEl.style.opacity = 1;
 
@@ -166,7 +164,6 @@ ritualInterval = setInterval(() => {
 if (ritualIndex >= ritualLines.length - 1) {
 clearInterval(ritualInterval);
 ritualInterval = null;
-loadingTextEl.classList.add('pulse');
 return;
 }
 
@@ -177,8 +174,7 @@ ritualIndex++;
 loadingTextEl.innerText = ritualLines[ritualIndex];
 loadingTextEl.style.opacity = 1;
 }, 600);
-
-}, 3800);
+}, 4500);
 }
 
 function stopRitualText() {
@@ -186,11 +182,12 @@ if (ritualInterval) {
 clearInterval(ritualInterval);
 ritualInterval = null;
 }
-loadingTextEl.classList.remove('pulse');
 loadingTextEl.style.opacity = 0;
 }
 
-/* Sister-specific messages */
+/* ------------------------------------------------------
+      Sister-specific messages
+   ------------------------------------------------------ */
 const firstListenLines = {
 flower: "Flower is listening...",
 candle: "Candle is listening...",
@@ -205,7 +202,9 @@ knife: "Knife is listening...",
 mirror: "Mirror is listening..."
 };
 
-/* Helpers */
+/* ------------------------------------------------------
+      Helpers
+   ------------------------------------------------------ */
 function setListeningMessage(msg) {
 document.body.classList.remove('has-response');
 
@@ -227,11 +226,7 @@ function showLoading() {
 document.body.classList.remove('has-response');
 
 listeningEl.style.display = 'none';
-
-loadingEl.classList.remove('is-visible');
-void loadingEl.offsetHeight; // iOS reflow fix
 loadingEl.classList.add('is-visible');
-
 startRitualText();
 
 responseEl.style.display = 'none';
@@ -259,30 +254,24 @@ responseEl.innerHTML = cleaned;
 
 resetOracle();
 
-/* Message handler */
+/* ------------------------------------------------------
+      Message handler
+   ------------------------------------------------------ */
 window.addEventListener('message', (event) => {
 const data = event.data;
 
 if (typeof data === 'string') {
-  const trimmed = data.trim();
+const t = data.trim().toLowerCase();
 
-  // ✅ Ignore stringified control objects
-  if (trimmed.startsWith('{') && trimmed.includes('"type"')) {
-    return;
-  }
-
-  const t = trimmed.toLowerCase();
-
-  if (t === "reset") {
-    resetOracle();
-  } else if (t === "loading") {
-    showLoading();
-  } else {
-    showResponse(data);
-  }
-  return;
+if (t === "reset") {
+resetOracle();
+} else if (t === "loading") {
+showLoading();
+} else {
+showResponse(data);
 }
-
+return;
+}
 
 if (typeof data === "object" && data !== null) {
 if (data.type === "listeningStatus" && data.sister) {
