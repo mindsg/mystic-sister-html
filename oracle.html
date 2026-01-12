@@ -44,7 +44,7 @@
     }
 
     /* ------------------------------------------------------
-       Loader (GIF) – stable, never removed from layout
+       Loader (GIF)
     ------------------------------------------------------ */
     #loading {
       margin-top: 16px;
@@ -65,16 +65,27 @@
       opacity: 0.9;
     }
 
-    /* 🔹 NEW: Ritual loading text */
+    /* Ritual loading text */
     #loading-text {
       margin-top: 14px;
       font-size: 1.2em;
-      text-align: center;     
+      text-align: center;
       opacity: 0;
       transition: opacity 600ms ease;
+      color: #282120;
     }
 
-    /* Collapse loader space once response is visible */
+    /* Subtle pulse for final line */
+    .pulse {
+      animation: softPulse 2.4s ease-in-out infinite;
+    }
+
+    @keyframes softPulse {
+      0%   { opacity: 0.85; }
+      50%  { opacity: 1; }
+      100% { opacity: 0.85; }
+    }
+
     body.has-response #loading {
       height: 0;
       margin-top: 0;
@@ -119,7 +130,6 @@
         src="https://mindsg.github.io/mystic-sister-html/assets/loading.gif?v=4"
         alt="Loading..."
       />
-      <!-- 🔹 NEW: Ritual text element -->
       <div id="loading-text" class="rotunda"></div>
     </div>
   </div>
@@ -127,9 +137,7 @@
   <div id="response"></div>
 
   <script>
-    /* ------------------------------------------------------
-       Preload GIF (prevents first-load flake)
-    ------------------------------------------------------ */
+    /* Preload GIF */
     const preloadGIF = new Image();
     preloadGIF.src =
       "https://mindsg.github.io/mystic-sister-html/assets/loading.gif?v=4";
@@ -140,23 +148,25 @@
     const loadingTextEl = document.getElementById('loading-text');
 
     /* ------------------------------------------------------
-       Ritual loading lines (run once, then hold)
+       Ritual loading lines (6 total)
     ------------------------------------------------------ */
     const ritualLines = [
       "Sister has heard you…",
+      "Don’t leave the room…",
+      "Tuning into your story…",
       "Shuffling the cards…",
-      "Aligning the symbols…",
-      "Reading the pattern…",
-      "One moment…"
+      "Reading the patterns…",
+      "One more moment…"
     ];
 
     let ritualIndex = 0;
     let ritualInterval = null;
 
     function startRitualText() {
-      stopRitualText(); // safety
+      stopRitualText();
 
       ritualIndex = 0;
+      loadingTextEl.classList.remove('pulse');
       loadingTextEl.innerText = ritualLines[0];
       loadingTextEl.style.opacity = 1;
 
@@ -164,17 +174,22 @@
         if (ritualIndex >= ritualLines.length - 1) {
           clearInterval(ritualInterval);
           ritualInterval = null;
+
+          // Final line: soft pulse
+          loadingTextEl.classList.add('pulse');
           return;
         }
 
         loadingTextEl.style.opacity = 0;
+        loadingTextEl.classList.remove('pulse');
 
         setTimeout(() => {
           ritualIndex++;
           loadingTextEl.innerText = ritualLines[ritualIndex];
           loadingTextEl.style.opacity = 1;
         }, 600);
-      }, 4500);
+
+      }, 3800);
     }
 
     function stopRitualText() {
@@ -182,6 +197,7 @@
         clearInterval(ritualInterval);
         ritualInterval = null;
       }
+      loadingTextEl.classList.remove('pulse');
       loadingTextEl.style.opacity = 0;
     }
 
@@ -226,11 +242,11 @@
       document.body.classList.remove('has-response');
 
       listeningEl.style.display = 'none';
-      
+
       loadingEl.classList.remove('is-visible');
       void loadingEl.offsetHeight; // 🔑 force reflow (fixes iOS background glitch)
       loadingEl.classList.add('is-visible');
-      
+
       startRitualText();
 
       responseEl.style.display = 'none';
@@ -248,10 +264,24 @@
 
       if (typeof msg !== 'string') msg = String(msg || '');
 
+      // ✅ NEW: if the message contains literal "\n", turn it into real line breaks
+      msg = msg.replace(/\\n/g, '\n');
+
+      // ✅ If it's plain text, render newlines as <br> so it doesn't show "\n\n"
+      const hasHtmlTags = /<\/?[a-z][\s\S]*>/i.test(msg);
+
       let cleaned = msg
         .replace(/<\/?html>/gi, '')
         .replace(/<\/?body.*?>/gi, '')
         .replace(/\n{3,}/g, '\n\n');
+
+      if (!hasHtmlTags) {
+        cleaned = cleaned
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/\n/g, "<br>");
+      }
 
       responseEl.innerHTML = cleaned;
     }
@@ -264,8 +294,21 @@
     window.addEventListener('message', (event) => {
       const data = event.data;
 
+      // 🔑 NEW: safely parse JSON sent as string
       if (typeof data === 'string') {
-        const t = data.trim().toLowerCase();
+        const trimmed = data.trim();
+
+        if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+          try {
+            const parsed = JSON.parse(trimmed);
+            window.dispatchEvent(
+              new MessageEvent('message', { data: parsed })
+            );
+            return;
+          } catch (e) {}
+        }
+
+        const t = trimmed.toLowerCase();
 
         if (t === "reset") {
           resetOracle();
