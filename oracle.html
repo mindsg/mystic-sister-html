@@ -1,245 +1,234 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mystic Sister Oracle</title>
-  <style>
-    /* ------------------------------------------------------
-       Custom Font: Rotunda Veneta
-    ------------------------------------------------------ */
-    @font-face {
-      font-family: 'RotundaVeneta';
-      src: url('fonts/RotundaVeneta.woff2') format('woff2'),
-           url('fonts/RotundaVeneta.woff') format('woff');
-      font-weight: normal;
-      font-style: normal;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mystic Sister Oracle</title>
 
-    .rotunda {
-      font-family: 'RotundaVeneta', 'Georgia', serif;
-      letter-spacing: 0.5px;
-    }
+<style>
+@font-face {
+  font-family: 'RotundaVeneta';
+  src: url('fonts/RotundaVeneta.woff2') format('woff2'),
+       url('fonts/RotundaVeneta.woff') format('woff');
+}
 
-    body {
-      background-color: #FFFBF5;
-      color: #000;
-      font-family: 'Georgia', serif;
-      line-height: 1.5;
-      margin: 0;
-      padding: 20px;
-      text-align: left;
-      overflow-x: hidden;
-    }
+body {
+  background-color: #FFFBF5;
+  color: #000;
+  font-family: Georgia, serif;
+  line-height: 1.55;
+  margin: 0;
+  padding: 20px;
+  overflow-x: hidden;
+}
 
-    #top-center {
-      padding-top: 60px;
-      text-align: center;
-    }
+.rotunda {
+  font-family: 'RotundaVeneta', Georgia, serif;
+  letter-spacing: 0.5px;
+}
 
-    #listening {
-      font-style: normal;
-      font-size: 1.6em;
-      font-family: 'RotundaVeneta', 'Georgia', serif;
-    }
+#top {
+  padding-top: 60px;
+  text-align: center;
+}
 
+#listening {
+  font-size: 1.6em;
+}
 
-    #loading {
-      display: none;
-      margin-top: 16px;
+#loading {
+  margin-top: 16px;
+  height: 180px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms ease-in;
+}
 
+#loading.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
 
+#loading img {
+  width: 180px;
+  height: 180px;
+  opacity: 0.9;
+}
 
+#loading-text {
+  margin-top: 14px;
+  font-size: 1.2em;
+  color: #282120;
+  opacity: 0;
+  transition: opacity 600ms ease;
+}
 
+.pulse {
+  animation: pulse 2.4s ease-in-out infinite;
+}
 
+@keyframes pulse {
+  0% { opacity: 0.85; }
+  50% { opacity: 1; }
+  100% { opacity: 0.85; }
+}
 
+#response {
+  display: none;
+  max-width: 640px;
+  margin: 12px auto 0;
+  animation: fadeIn 250ms ease-in;
+}
 
+#response p {
+  margin: 0.4em 0;
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-    }
-
-    #loading img {
-
-
-
-
-      width: 120px;
-      height: auto;
-
-      opacity: 0.9;
-    }
-
-    #response {
-      display: none;
-      animation: fadeIn 300ms ease-in;
-      margin-top: 24px;
-      max-width: 640px;
-      margin-left: auto;
-      margin-right: auto;
-      white-space: pre-line;
-      text-align: left;
-    }
-    #response * { text-align: left !important; }
-
-    #response p {
-      margin-top: 0.25em;
-      margin-bottom: 0.25em;
-    }
-    #response br { line-height: 1.2; }
-
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  </style>
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+</style>
 </head>
+
 <body>
 
-  <div id="top-center">
-    <div id="listening" class="rotunda">Sister is listening...</div>
+<div id="top">
+  <div id="listening" class="rotunda">Sister is listening...</div>
 
-
-    <div id="loading">
-      <!-- ADDING cache-buster -->
-      <img src="https://mindsg.github.io/mystic-sister-html/assets/loading.gif?v=1" alt="Loading..." />
-
-
-
-
-
-
-
-
-
-
-    </div>
+  <div id="loading">
+    <img src="https://mindsg.github.io/mystic-sister-html/assets/loading.gif?v=4" />
+    <div id="loading-text" class="rotunda"></div>
   </div>
+</div>
 
-  <div id="response"></div>
+<div id="response"></div>
 
-  <script>
-    /* ------------------------------------------------------
-       PRELOAD THE GIF (fixes intermittent loading)
-    ------------------------------------------------------ */
-    const preloadGIF = new Image();
-    preloadGIF.src = "https://mindsg.github.io/mystic-sister-html/assets/loading.gif?v=1";
+<script>
+const listeningEl = document.getElementById('listening');
+const loadingEl = document.getElementById('loading');
+const loadingTextEl = document.getElementById('loading-text');
+const responseEl = document.getElementById('response');
 
-    const listeningEl = document.getElementById('listening');
-    const loadingEl = document.getElementById('loading');
+/* ---------------- Ritual Loading Text ---------------- */
 
-    const responseEl = document.getElementById('response');
+const ritualLines = [
+  "Sister has heard you…",
+  "Don’t leave the room…",
+  "Tuning into your story…",
+  "Shuffling the cards…",
+  "Reading the patterns…",
+  "One more moment…"
+];
 
-    /* ------------------------------------------------------
-       1) Sister-specific "listening" messages
-    ------------------------------------------------------ */
-    const firstListenLines = {
-      flower: "Flower is here with you… just breathe, love.",
-      candle: "Candle’s flame softens… she’s listening.",
-      knife: "Knife watches yo bish ass, ready to see the truth.",
-      mirror: "Mirror waits, still and patient, reflecting your heart."
-    };
+let ritualIndex = 0;
+let ritualTimer = null;
 
-    const followupListenLines = {
-      flower: "Flower is listening again… whenever you’re ready.",
-      candle: "Candle leans in, her light steady…",
-      knife: "Knife listens closely—tell her what’s next.",
-      mirror: "Mirror settles… she’s listening once more."
-    };
+function startRitual() {
+  stopRitual();
+  ritualIndex = 0;
+  loadingTextEl.classList.remove('pulse');
+  loadingTextEl.textContent = ritualLines[0];
+  loadingTextEl.style.opacity = 1;
 
-    /* ------------------------------------------------------
-       Helpers
-    ------------------------------------------------------ */
-    function setListeningMessage(msg) {
-      listeningEl.innerHTML = msg;
-      listeningEl.style.display = 'block';
-      loadingEl.style.display = 'none';
-      responseEl.style.display = 'none';
-      responseEl.innerHTML = '';
-
+  ritualTimer = setInterval(() => {
+    if (ritualIndex >= ritualLines.length - 1) {
+      clearInterval(ritualTimer);
+      ritualTimer = null;
+      loadingTextEl.classList.add('pulse');
+      return;
     }
 
-    function resetOracle() {
-      setListeningMessage("Sister is listening...");
+    loadingTextEl.style.opacity = 0;
+
+    setTimeout(() => {
+      ritualIndex++;
+      loadingTextEl.textContent = ritualLines[ritualIndex];
+      loadingTextEl.style.opacity = 1;
+    }, 600);
+
+  }, 3800);
+}
+
+function stopRitual() {
+  if (ritualTimer) clearInterval(ritualTimer);
+  ritualTimer = null;
+  loadingTextEl.classList.remove('pulse');
+  loadingTextEl.style.opacity = 0;
+}
+
+/* ---------------- UI States ---------------- */
+
+function showListening(text) {
+  responseEl.style.display = 'none';
+  responseEl.innerHTML = '';
+  loadingEl.classList.remove('visible');
+  stopRitual();
+
+  listeningEl.textContent = text || "Sister is listening...";
+  listeningEl.style.display = 'block';
+}
+
+function showLoading() {
+  listeningEl.style.display = 'none';
+  responseEl.style.display = 'none';
+  responseEl.innerHTML = '';
+
+  loadingEl.classList.remove('visible');
+  void loadingEl.offsetHeight; // force reflow
+  loadingEl.classList.add('visible');
+
+  startRitual();
+}
+
+function showResponse(html) {
+  loadingEl.classList.remove('visible');
+  stopRitual();
+  listeningEl.style.display = 'none';
+
+  responseEl.innerHTML = html;
+  responseEl.style.display = 'block';
+}
+
+/* ---------------- Message Handling ---------------- */
+
+window.addEventListener('message', (event) => {
+  let data = event.data;
+
+  // Handle JSON sent as string
+  if (typeof data === 'string') {
+    const trimmed = data.trim();
+
+    if (trimmed === 'loading') {
+      showLoading();
+      return;
     }
 
-    function showLoading() {
-      listeningEl.style.display = 'none';
-      loadingEl.style.display = 'block';
-      responseEl.style.display = 'none';
-      responseEl.innerHTML = '';
-
-
-
-
-
-
-
-
-    }
-
-    function showResponse(msg) {
-
-
-
-      listeningEl.style.display = 'none';
-      loadingEl.style.display = 'none';
-      responseEl.style.display = 'block';
-
-      if (typeof msg !== 'string') msg = String(msg || '');
-      let cleaned = msg
-        .replace(/<\/?html>/gi, '')
-        .replace(/<\/?body.*?>/gi, '')
-        .replace(/\n{2,}/g, '\n');
-
-      responseEl.innerHTML = cleaned;
-    }
-
-    resetOracle();
-
-    /* ------------------------------------------------------
-       2) Message handler
-    ------------------------------------------------------ */
-    window.addEventListener('message', (event) => {
-      let data = event.data;
-
-      if (typeof data === 'string') {
-        const t = data.trim().toLowerCase();
-
-        if (t === "reset") {
-          resetOracle();
-        } else if (t === "loading") {
-          showLoading();
-        } else {
-          showResponse(data);
-        }
+    if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+      try {
+        data = JSON.parse(trimmed);
+      } catch {
         return;
       }
+    } else {
+      // Final response HTML
+      showResponse(trimmed);
+      return;
+    }
+  }
 
-      if (typeof data === "object" && data !== null) {
-        if (data.type === "listeningStatus" && data.sister) {
-          const key = data.sister.toLowerCase();
-          const line = firstListenLines[key] || "She is listening…";
-          setListeningMessage(line);
-          return;
-        }
+  if (typeof data === 'object' && data !== null) {
+    if (data.type === 'listeningStatus' || data.type === 'listeningStatusNext') {
+      const name = data.sister ? `${data.sister} is listening...` : "Sister is listening...";
+      showListening(name);
+      return;
+    }
+  }
+});
 
-        if (data.type === "listeningStatusNext" && data.sister) {
-          const key = data.sister.toLowerCase();
-          const line = followupListenLines[key] || "She is listening again…";
-          setListeningMessage(line);
-          return;
-        }
-      }
+// Initial state
+showListening("Sister is listening...");
+</script>
 
-      console.log("Unknown message received:", data);
-    });
-  </script>
 </body>
+</html>
