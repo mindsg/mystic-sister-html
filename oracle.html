@@ -179,7 +179,7 @@
     document.body.classList.remove('has-response');
     listeningEl.style.display = 'none';
     loadingEl.classList.remove('is-visible');
-    void loadingEl.offsetHeight; // iOS reflow fix
+    void loadingEl.offsetHeight;
     loadingEl.classList.add('is-visible');
     startRitualText();
     responseEl.style.display = 'none';
@@ -192,7 +192,6 @@
     stopRitualText();
     listeningEl.style.display = 'none';
 
-    // normalize escaped newlines & quotes
     msg = String(msg)
       .replace(/\\n/g, '\n')
       .replace(/\\"/g, '"');
@@ -201,6 +200,7 @@
       .replace(/<\/?html>/gi, '')
       .replace(/<\/?body.*?>/gi, '')
       .replace(/\n{3,}/g, '\n\n')
+      .replace(/\n{2,}/g, '<br><br>')
       .replace(/\n/g, '<br>');
 
     responseEl.innerHTML = msg;
@@ -212,44 +212,27 @@
   window.addEventListener('message', (event) => {
     let data = event.data;
 
-    // unwrap quoted strings like "\"loading\""
+    // ✅ Parse JSON strings safely
     if (typeof data === 'string') {
       const trimmed = data.trim();
-
-      if (
-        (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
-        (trimmed.startsWith("'") && trimmed.endsWith("'"))
-      ) {
+      if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
         try {
           data = JSON.parse(trimmed);
-        } catch {
-          data = trimmed.slice(1, -1);
-        }
+        } catch {}
       }
     }
 
-    // string commands
-if (typeof data === 'string') {
-  const trimmed = data.trim();
+    if (typeof data === 'string') {
+      const t = data.trim().toLowerCase();
+      if (t === 'reset') return resetOracle();
+      if (t === 'loading') return showLoading();
+      return showResponse(data);
+    }
 
-  // ✅ Ignore control objects sent as strings
-  if (trimmed.startsWith('{') && trimmed.includes('"type"')) {
-    return;
-  }
-
-  const t = trimmed.toLowerCase();
-  if (t === 'reset') return resetOracle();
-  if (t === 'loading') return showLoading();
-
-  return showResponse(data);
-}
-
-    // object messages
     if (data && typeof data === 'object') {
       if (data.type === 'listeningStatus' && data.sister) {
         listeningEl.innerText = `${data.sister} is listening...`;
         listeningEl.style.display = 'block';
-        return;
       }
     }
   });
