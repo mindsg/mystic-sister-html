@@ -60,8 +60,8 @@ body {
   font-size: 1.2em;
   text-align: center;
   opacity: 0;
-  transition: opacity 600ms ease;
   color: #282120;
+  transition: opacity 600ms ease;
 }
 
 .pulse {
@@ -85,7 +85,6 @@ body.has-response #loading {
   max-width: 640px;
   margin-left: auto;
   margin-right: auto;
-  white-space: normal;
   animation: fadeIn 300ms ease-in;
 }
 
@@ -122,7 +121,6 @@ const loadingEl = document.getElementById('loading');
 const responseEl = document.getElementById('response');
 const loadingTextEl = document.getElementById('loading-text');
 
-/* ---------- ritual loading text ---------- */
 const ritualLines = [
   "Sister has heard you…",
   "Don’t leave the room…",
@@ -151,11 +149,13 @@ function startRitualText() {
     }
 
     loadingTextEl.style.opacity = 0;
+
     setTimeout(() => {
       ritualIndex++;
       loadingTextEl.innerText = ritualLines[ritualIndex];
       loadingTextEl.style.opacity = 1;
     }, 600);
+
   }, 3800);
 }
 
@@ -166,7 +166,6 @@ function stopRitualText() {
   loadingTextEl.style.opacity = 0;
 }
 
-/* ---------- sister messages (unchanged structure) ---------- */
 const firstListenLines = {
   flower: "Flower is listening...",
   candle: "Candle is listening...",
@@ -181,9 +180,9 @@ const followupListenLines = {
   mirror: "Mirror is listening..."
 };
 
-/* ---------- helpers ---------- */
-function resetOracle() {
+function setListeningMessage(msg) {
   document.body.classList.remove('has-response');
+  listeningEl.innerText = msg;
   listeningEl.style.display = 'block';
   loadingEl.classList.remove('is-visible');
   stopRitualText();
@@ -191,11 +190,15 @@ function resetOracle() {
   responseEl.innerHTML = '';
 }
 
+function resetOracle() {
+  setListeningMessage("Sister is listening...");
+}
+
 function showLoading() {
   document.body.classList.remove('has-response');
   listeningEl.style.display = 'none';
   loadingEl.classList.remove('is-visible');
-  void loadingEl.offsetHeight; // iOS reflow fix
+  void loadingEl.offsetHeight;
   loadingEl.classList.add('is-visible');
   startRitualText();
   responseEl.style.display = 'none';
@@ -204,56 +207,51 @@ function showLoading() {
 
 function showResponse(msg) {
   document.body.classList.add('has-response');
+  listeningEl.style.display = 'none';
   loadingEl.classList.remove('is-visible');
   stopRitualText();
-  listeningEl.style.display = 'none';
+  responseEl.style.display = 'block';
 
-  msg = String(msg)
-    .replace(/\\n/g, '\n')
-    .replace(/\\"/g, '"')
-    .replace(/\n{2,}/g, '<br><br>')
-    .replace(/\n/g, '<br>');
+  if (typeof msg !== 'string') msg = String(msg || '');
+
+  msg = msg
+    .replace(/^"+|"+$/g, '')   // strip outer quotes
+    .replace(/\\n/g, '')       // remove escaped newlines
+    .replace(/\\"/g, '"')      // normalize quotes
+    .replace(/<\/?html>/gi, '')
+    .replace(/<\/?body.*?>/gi, '');
 
   responseEl.innerHTML = msg;
-  responseEl.style.display = 'block';
 }
 
 resetOracle();
 
-/* ---------- message handler ---------- */
 window.addEventListener('message', (event) => {
-  let data = event.data;
+  const data = event.data;
 
-  // Parse JSON if it arrives as a string
   if (typeof data === 'string') {
     const trimmed = data.trim();
-    if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
-      try { data = JSON.parse(trimmed); }
-      catch {}
-    }
-  }
 
-  // string commands
-  if (typeof data === 'string') {
-    const t = data.trim().toLowerCase();
+    // Ignore control objects accidentally sent as strings
+    if (trimmed.startsWith('{') && trimmed.includes('"type"')) return;
+
+    const t = trimmed.toLowerCase();
     if (t === 'reset') return resetOracle();
     if (t === 'loading') return showLoading();
-    return showResponse(data);
+
+    return showResponse(trimmed);
   }
 
-  // object commands
   if (data && typeof data === 'object') {
     if (data.type === 'listeningStatus' && data.sister) {
       const key = data.sister.toLowerCase();
-      listeningEl.innerText = firstListenLines[key] || "Sister is listening...";
-      listeningEl.style.display = 'block';
+      setListeningMessage(firstListenLines[key] || "Sister is listening...");
       return;
     }
 
     if (data.type === 'listeningStatusNext' && data.sister) {
       const key = data.sister.toLowerCase();
-      listeningEl.innerText = followupListenLines[key] || "Sister is listening...";
-      listeningEl.style.display = 'block';
+      setListeningMessage(followupListenLines[key] || "Sister is listening...");
     }
   }
 });
