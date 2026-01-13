@@ -19,7 +19,6 @@ body {
   line-height: 1.55;
   margin: 0;
   padding: 20px;
-  overflow-x: hidden;
 }
 
 .rotunda {
@@ -28,7 +27,7 @@ body {
 }
 
 #top {
-  padding-top: 60px;
+  padding-top: 40px;
   text-align: center;
 }
 
@@ -37,7 +36,7 @@ body {
 }
 
 #loading {
-  margin-top: 16px;
+  margin-top: 12px;
   height: 180px;
   opacity: 0;
   pointer-events: none;
@@ -56,11 +55,11 @@ body {
 }
 
 #loading-text {
-  margin-top: 14px;
+  margin-top: 12px;
   font-size: 1.2em;
   color: #282120;
   opacity: 0;
-  transition: opacity 600ms ease;
+  transition: opacity 500ms ease;
 }
 
 .pulse {
@@ -76,17 +75,11 @@ body {
 #response {
   display: none;
   max-width: 640px;
-  margin: 12px auto 0;
-  animation: fadeIn 250ms ease-in;
+  margin: 16px auto 0;
 }
 
 #response p {
   margin: 0.4em 0;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
 }
 </style>
 </head>
@@ -110,8 +103,6 @@ const loadingEl = document.getElementById('loading');
 const loadingTextEl = document.getElementById('loading-text');
 const responseEl = document.getElementById('response');
 
-/* ---------------- Ritual Loading Text ---------------- */
-
 const ritualLines = [
   "Sister has heard you…",
   "Don’t leave the room…",
@@ -127,9 +118,9 @@ let ritualTimer = null;
 function startRitual() {
   stopRitual();
   ritualIndex = 0;
-  loadingTextEl.classList.remove('pulse');
   loadingTextEl.textContent = ritualLines[0];
   loadingTextEl.style.opacity = 1;
+  loadingTextEl.classList.remove('pulse');
 
   ritualTimer = setInterval(() => {
     if (ritualIndex >= ritualLines.length - 1) {
@@ -138,33 +129,27 @@ function startRitual() {
       loadingTextEl.classList.add('pulse');
       return;
     }
-
     loadingTextEl.style.opacity = 0;
-
     setTimeout(() => {
       ritualIndex++;
       loadingTextEl.textContent = ritualLines[ritualIndex];
       loadingTextEl.style.opacity = 1;
-    }, 600);
-
+    }, 500);
   }, 3800);
 }
 
 function stopRitual() {
   if (ritualTimer) clearInterval(ritualTimer);
   ritualTimer = null;
-  loadingTextEl.classList.remove('pulse');
   loadingTextEl.style.opacity = 0;
+  loadingTextEl.classList.remove('pulse');
 }
 
-/* ---------------- UI States ---------------- */
-
 function showListening(text) {
-  responseEl.style.display = 'none';
-  responseEl.innerHTML = '';
   loadingEl.classList.remove('visible');
   stopRitual();
-
+  responseEl.style.display = 'none';
+  responseEl.innerHTML = '';
   listeningEl.textContent = text || "Sister is listening...";
   listeningEl.style.display = 'block';
 }
@@ -173,11 +158,9 @@ function showLoading() {
   listeningEl.style.display = 'none';
   responseEl.style.display = 'none';
   responseEl.innerHTML = '';
-
   loadingEl.classList.remove('visible');
-  void loadingEl.offsetHeight; // force reflow
+  void loadingEl.offsetHeight;
   loadingEl.classList.add('visible');
-
   startRitual();
 }
 
@@ -186,16 +169,20 @@ function showResponse(html) {
   stopRitual();
   listeningEl.style.display = 'none';
 
+  // Normalize escaped HTML
+  html = String(html)
+    .replace(/^"+|"+$/g, '')        // strip wrapping quotes
+    .replace(/\\n/g, '')            // remove escaped newlines
+    .replace(/\\"/g, '"');          // unescape quotes
+
   responseEl.innerHTML = html;
   responseEl.style.display = 'block';
 }
 
-/* ---------------- Message Handling ---------------- */
-
 window.addEventListener('message', (event) => {
   let data = event.data;
 
-  // Handle JSON sent as string
+  // unwrap quoted strings
   if (typeof data === 'string') {
     const trimmed = data.trim();
 
@@ -204,29 +191,30 @@ window.addEventListener('message', (event) => {
       return;
     }
 
+    // try JSON
     if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
       try {
         data = JSON.parse(trimmed);
       } catch {
+        showResponse(trimmed);
         return;
       }
     } else {
-      // Final response HTML
       showResponse(trimmed);
       return;
     }
   }
 
-  if (typeof data === 'object' && data !== null) {
+  if (data && typeof data === 'object') {
     if (data.type === 'listeningStatus' || data.type === 'listeningStatusNext') {
-      const name = data.sister ? `${data.sister} is listening...` : "Sister is listening...";
-      showListening(name);
-      return;
+      showListening(
+        data.sister ? `${data.sister} is listening...` : "Sister is listening..."
+      );
     }
   }
 });
 
-// Initial state
+// initial
 showListening("Sister is listening...");
 </script>
 
