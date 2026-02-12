@@ -40,9 +40,6 @@
       font-family: 'RotundaVeneta', 'Georgia', serif;
     }
 
-    /* ------------------------------------------------------
-       Loader (GIF)
-    ------------------------------------------------------ */
     #loading {
       margin-top: 16px;
       height: 180px;
@@ -62,7 +59,6 @@
       opacity: 0.9;
     }
 
-    /* Ritual loading text */
     #loading-text {
       margin-top: 14px;
       font-size: 1.2em;
@@ -72,25 +68,21 @@
       color: #282120;
     }
 
-    /* Subtle pulse for final line */
     .pulse {
       animation: softPulse 2.4s ease-in-out infinite;
     }
+
     @keyframes softPulse {
       0%   { opacity: 0.85; }
       50%  { opacity: 1; }
       100% { opacity: 0.85; }
     }
 
-    /* Collapse loader space once response is visible */
     body.has-response #loading {
       height: 0;
       margin-top: 0;
     }
 
-    /* ------------------------------------------------------
-       Response
-    ------------------------------------------------------ */
     #response {
       display: none;
       margin-top: 8px;
@@ -102,9 +94,8 @@
       animation: fadeIn 300ms ease-in;
     }
 
-    /* Adjust paragraph spacing (HTML <p> based) */
     #response p {
-      margin: 0.8em 0; /* ← slightly roomier, not huge */
+      margin: 0.8em 0;
     }
 
     @keyframes fadeIn {
@@ -112,7 +103,6 @@
       to { opacity: 1; }
     }
 
-    /* iOS: prevent "phantom" top space after loader collapses */
     body.has-response #response {
       margin-top: 0;
     }
@@ -136,7 +126,6 @@
   <div id="response"></div>
 
   <script>
-    /* Preload GIF */
     const preloadGIF = new Image();
     preloadGIF.src = "https://mindsg.github.io/mystic-sister-html/assets/loading.gif?v=4";
 
@@ -145,7 +134,6 @@
     const responseEl = document.getElementById('response');
     const loadingTextEl = document.getElementById('loading-text');
 
-    /* Ritual loading lines (6 total) */
     const ritualLines = [
       "Sister has heard you…",
       "Don’t leave the room…",
@@ -160,7 +148,6 @@
 
     function startRitualText() {
       stopRitualText();
-
       ritualIndex = 0;
       loadingTextEl.classList.remove('pulse');
       loadingTextEl.innerText = ritualLines[0];
@@ -170,7 +157,7 @@
         if (ritualIndex >= ritualLines.length - 1) {
           clearInterval(ritualInterval);
           ritualInterval = null;
-          loadingTextEl.classList.add('pulse'); // final line pulses
+          loadingTextEl.classList.add('pulse');
           return;
         }
 
@@ -194,7 +181,6 @@
       loadingTextEl.style.opacity = 0;
     }
 
-    /* Sister-specific listening messages */
     const firstListenLines = {
       flower: "Flower is listening...",
       candle: "Candle is listening...",
@@ -211,13 +197,10 @@
 
     function setListeningMessage(msg) {
       document.body.classList.remove('has-response');
-
       listeningEl.innerHTML = msg;
       listeningEl.style.display = 'block';
-
       loadingEl.classList.remove('is-visible');
       stopRitualText();
-
       responseEl.style.display = 'none';
       responseEl.innerHTML = '';
     }
@@ -228,16 +211,11 @@
 
     function showLoading() {
       document.body.classList.remove('has-response');
-
       listeningEl.style.display = 'none';
-
-      /* iOS: force the loader to repaint reliably */
       loadingEl.classList.remove('is-visible');
-      void loadingEl.offsetHeight; // reflow
+      void loadingEl.offsetHeight;
       loadingEl.classList.add('is-visible');
-
       startRitualText();
-
       responseEl.style.display = 'none';
       responseEl.innerHTML = '';
     }
@@ -252,32 +230,23 @@
 
     function showResponse(msg) {
       document.body.classList.add('has-response');
-
       listeningEl.style.display = 'none';
       loadingEl.classList.remove('is-visible');
       stopRitualText();
-
       responseEl.style.display = 'block';
 
-      // Normalize to string and remove accidental wrapping quotes
       msg = stripOuterQuotesIfAny(String(msg ?? ''));
-
-      // Fix escaped sequences that sometimes leak through
       msg = String(msg)
         .replace(/\\n/g, '\n')
         .replace(/\\"/g, '"');
 
-      // If we have HTML paragraphs, keep it as HTML.
-      // Remove any outer html/body tags just in case.
       let cleaned = msg
         .replace(/<\/?html>/gi, '')
         .replace(/<\/?body.*?>/gi, '')
         .trim();
 
-      // If content is plain text (no <p>), convert paragraphs safely to <p>
       const hasP = /<\s*p[\s>]/i.test(cleaned);
       if (!hasP) {
-        // Split on blank lines, wrap each chunk in <p>
         const parts = cleaned
           .split(/\n{2,}/)
           .map(s => s.trim())
@@ -291,7 +260,6 @@
           return `<p>${escaped}</p>`;
         }).join('');
       } else {
-        // If there are stray literal \n within HTML, remove them (p handles spacing)
         cleaned = cleaned.replace(/\n+/g, '');
       }
 
@@ -300,41 +268,34 @@
 
     resetOracle();
 
-    /* ------------------------------------------------------
-       Message handler (robust + SIMPLE)
-       - swallow "loading" so it never renders
-       - parse JSON control objects even if they arrive as strings
-    ------------------------------------------------------ */
-    window.addEventListener('message', (event) => {
+    /* ============================================
+       UPDATED MESSAGE HANDLER (Android + iOS)
+    ============================================ */
+
+    function handleIncomingMessage(event) {
       let data = event.data;
 
-      // If JSON control arrives as a STRING, parse it
       if (typeof data === 'string') {
         const raw = data;
         const trimmed = raw.trim();
 
-        // 1) Swallow and handle direct commands FIRST (prevents "loading" flashing)
         const cmd = stripOuterQuotesIfAny(trimmed).trim().toLowerCase();
         if (cmd === 'loading') { showLoading(); return; }
         if (cmd === 'reset') { resetOracle(); return; }
 
-        // 2) If it looks like a JSON object string, try parse
         if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
           try {
             data = JSON.parse(trimmed);
           } catch (e) {
-            // not JSON, treat as response text
             showResponse(raw);
             return;
           }
         } else {
-          // normal response text
           showResponse(raw);
           return;
         }
       }
 
-      // Object messages
       if (data && typeof data === 'object') {
         if (data.type === "listeningStatus" && data.sister) {
           const key = String(data.sister).toLowerCase();
@@ -348,13 +309,18 @@
           return;
         }
 
-        // If an unexpected object arrives, ignore silently (prevents raw object text)
         return;
       }
 
-      // Fallback for anything else
       showResponse(String(data ?? ''));
-    });
+    }
+
+    /* iOS */
+    window.addEventListener('message', handleIncomingMessage);
+
+    /* Android */
+    document.addEventListener('message', handleIncomingMessage);
+
   </script>
 </body>
 </html>
